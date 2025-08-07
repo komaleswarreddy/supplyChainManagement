@@ -163,17 +163,17 @@ ALTER TABLE "contracts" DROP CONSTRAINT "contracts_terminated_by_id_users_id_fk"
 --> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "priority" SET DEFAULT 'NORMAL';--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "value" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "contracts" ALTER COLUMN "terms" SET DATA TYPE jsonb;--> statement-breakpoint
+ALTER TABLE "contracts" ALTER COLUMN "terms" SET DATA TYPE jsonb USING terms::jsonb;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "terms" SET NOT NULL;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "category" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "renewal_date" SET DATA TYPE timestamp with time zone;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "renewal_date" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "contracts" ALTER COLUMN "renewal_terms" SET DATA TYPE jsonb;--> statement-breakpoint
+ALTER TABLE "contracts" ALTER COLUMN "renewal_terms" SET DATA TYPE jsonb USING renewal_terms::jsonb;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "renewal_terms" DROP NOT NULL;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "owner_id" SET DATA TYPE uuid;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "approver_id" SET DATA TYPE uuid;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "counterparty" SET NOT NULL;--> statement-breakpoint
-ALTER TABLE "contracts" ALTER COLUMN "attachments" SET DATA TYPE jsonb;--> statement-breakpoint
+ALTER TABLE "contracts" ALTER COLUMN "attachments" SET DATA TYPE jsonb USING attachments::jsonb;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "risk_level" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "risk_level" SET DEFAULT 'LOW';--> statement-breakpoint
 ALTER TABLE "contracts" ALTER COLUMN "risk_level" SET NOT NULL;--> statement-breakpoint
