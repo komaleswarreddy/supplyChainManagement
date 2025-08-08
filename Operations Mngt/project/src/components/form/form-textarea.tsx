@@ -17,15 +17,14 @@ export function FormTextarea({
   ...props
 }: FormTextareaProps) {
   const { register } = useFormContext();
-  
-  if (!register) {
-    console.error(`FormTextarea: No form context found for field "${name}". Make sure this component is used within a FormProvider.`);
-    return null;
-  }
 
   return (
     <FormFieldWrapper name={name} label={label} description={description} className={className}>
-      <Textarea {...register(name)} {...props} />
+      <Textarea 
+        {...props}
+        // Ensure proper value handling
+        defaultValue={props.defaultValue || ''}
+      />
     </FormFieldWrapper>
   );
 }

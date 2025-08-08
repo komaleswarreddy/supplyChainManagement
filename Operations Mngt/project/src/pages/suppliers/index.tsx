@@ -216,7 +216,7 @@ export function SupplierList() {
           <Building2 className="h-6 w-6" />
           <h1 className="text-3xl font-bold">Suppliers</h1>
         </div>
-        <Button onClick={() => navigate('new')} className="flex items-center gap-2">
+        <Button onClick={() => navigate('create')} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Add Supplier
         </Button>

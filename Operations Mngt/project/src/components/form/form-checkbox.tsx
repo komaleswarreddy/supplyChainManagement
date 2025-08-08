@@ -26,11 +26,6 @@ export function FormCheckbox({
 }: FormCheckboxProps) {
   const { getValues, setValue, register } = useFormContext();
   
-  if (!getValues || !setValue || !register) {
-    console.error(`FormCheckbox: No form context found for field "${name}". Make sure this component is used within a FormProvider.`);
-    return null;
-  }
-  
   // Handle array values (for multiple checkboxes with the same name)
   const handleCheckboxChange = (checked: boolean) => {
     if (value) {

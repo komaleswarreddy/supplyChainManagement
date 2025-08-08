@@ -200,7 +200,7 @@ export function RiskAssessmentList() {
           <AlertTriangle className="h-6 w-6" />
           <h1 className="text-3xl font-bold">Supplier Risk Assessments</h1>
         </div>
-        <Button onClick={() => navigate('new')} className="flex items-center gap-2">
+        <Button onClick={() => navigate('create')} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           New Assessment
         </Button>

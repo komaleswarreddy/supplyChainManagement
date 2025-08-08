@@ -3,7 +3,6 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/useToast';
-import { Form } from '@/components/ui/form';
 import { FormActions } from './form-actions';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +36,10 @@ export function FormContainer<T extends z.ZodType>({
   children,
 }: FormContainerProps<T>) {
   const { toast } = useToast();
+  
+  // Add debugging for form initialization
+  console.log('FormContainer: Initializing form with defaultValues:', defaultValues);
+
   const methods = useForm<z.infer<T>>({
     resolver: zodResolver(schema),
     defaultValues,
@@ -45,6 +48,7 @@ export function FormContainer<T extends z.ZodType>({
 
   const handleSubmit = async (values: z.infer<T>) => {
     try {
+      console.log('FormContainer: Submitting form with values:', values);
       await onSubmit(values);
       toast.success('Form submitted successfully');
     } catch (error) {

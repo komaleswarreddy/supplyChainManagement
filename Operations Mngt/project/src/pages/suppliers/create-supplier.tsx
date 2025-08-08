@@ -65,6 +65,16 @@ const defaultValues: SupplierFormData = {
   status: 'DRAFT',
   taxId: '',
   registrationNumber: '',
+  website: '',
+  industry: '',
+  description: '',
+  yearEstablished: undefined,
+  annualRevenue: undefined,
+  employeeCount: undefined,
+  businessClassifications: [],
+  paymentTerms: '',
+  preferredCurrency: 'USD',
+  notes: '',
   addresses: [
     {
       type: 'HEADQUARTERS',
@@ -84,10 +94,15 @@ const defaultValues: SupplierFormData = {
       email: '',
       phone: '',
       isPrimary: true,
+      department: '',
     },
   ],
   categories: [''],
+  bankInformation: undefined, // Explicitly set as undefined since it's optional
 };
+
+// Add debugging for default values
+console.log('CreateSupplier: Default values:', defaultValues);
 
 const supplierTypeOptions: { label: string; value: SupplierType }[] = [
   { label: 'Manufacturer', value: 'MANUFACTURER' },
@@ -138,10 +153,17 @@ export function CreateSupplier() {
   const { useCreateSupplier } = useSuppliers();
   const { mutate: createSupplier, isLoading } = useCreateSupplier();
 
+  console.log('CreateSupplier: Component rendering');
+
   const onSubmit = async (data: SupplierFormData) => {
+    console.log('CreateSupplier: Form submitted with data:', data);
     createSupplier(data as Omit<Supplier, 'id' | 'code' | 'createdAt' | 'updatedAt' | 'createdBy' | 'audit'>, {
       onSuccess: (response) => {
+        console.log('CreateSupplier: Success - navigating to:', response.data.id);
         navigate(`/suppliers/${response.data.id}`);
+      },
+      onError: (error) => {
+        console.error('CreateSupplier: Error creating supplier:', error);
       },
     });
   };
@@ -159,7 +181,11 @@ export function CreateSupplier() {
         onCancel={() => navigate('/suppliers')}
         showReset
       >
-        {({ control }) => {
+        {({ control, getValues, watch }) => {
+          console.log('CreateSupplier: Form render function called');
+          console.log('CreateSupplier: Form control:', control);
+          console.log('CreateSupplier: Form getValues:', getValues());
+          
           const { fields: addressFields, append: appendAddress, remove: removeAddress } = useFieldArray({
             control,
             name: 'addresses',
@@ -175,9 +201,12 @@ export function CreateSupplier() {
             name: 'categories',
           });
 
+          console.log('CreateSupplier: Field arrays - addresses:', addressFields.length, 'contacts:', contactFields.length, 'categories:', categoryFields.length);
+
           return (
             <>
               <FormSection title="Basic Information">
+                <div>Debug: Basic Information section rendering</div>
                 <FormInput
                   name="name"
                   label="Supplier Name"
@@ -217,6 +246,7 @@ export function CreateSupplier() {
               </FormSection>
 
               <FormSection title="Additional Details">
+                <div>Debug: Additional Details section rendering</div>
                 <FormInput
                   name="yearEstablished"
                   label="Year Established"
@@ -249,14 +279,15 @@ export function CreateSupplier() {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Business Classifications</h2>
+                  <h3 className="text-lg font-semibold">Business Classifications</h3>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div>Debug: Business Classifications section rendering</div>
+                <div className="grid gap-4 sm:grid-cols-2">
                   {businessClassificationOptions.map((option) => (
                     <FormCheckbox
                       key={option.value}
                       name="businessClassifications"
-                      label={option.label}
+                      label=""
                       checkboxLabel={option.label}
                       value={option.value}
                     />
@@ -266,50 +297,52 @@ export function CreateSupplier() {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Addresses</h2>
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      appendAddress({
-                        type: 'SHIPPING',
+                  <h3 className="text-lg font-semibold">Addresses</h3>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => appendAddress({
+                        type: 'OTHER',
                         street: '',
                         city: '',
                         state: '',
                         country: '',
                         postalCode: '',
                         isPrimary: false,
-                      })
-                    }
-                    className="flex items-center gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Address
-                  </Button>
+                      })}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Address
+                    </Button>
+                    {addressFields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeAddress(addressFields.length - 1)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remove Address
+                      </Button>
+                    )}
+                  </div>
                 </div>
-
+                <div>Debug: Addresses section rendering, {addressFields.length} fields</div>
                 {addressFields.map((field, index) => (
-                  <div
-                    key={field.id}
-                    className="rounded-lg border p-6"
-                  >
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div key={field.id} className="rounded-lg border bg-card p-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <FormSelect
                         name={`addresses.${index}.type`}
                         label="Address Type"
                         options={addressTypeOptions}
                       />
-                      <FormCheckbox
-                        name={`addresses.${index}.isPrimary`}
-                        label="Primary Address"
-                        checkboxLabel="This is the primary address"
+                      <FormInput
+                        name={`addresses.${index}.street`}
+                        label="Street"
+                        placeholder="Enter street address"
                       />
-                      <div className="sm:col-span-2 lg:col-span-3">
-                        <FormInput
-                          name={`addresses.${index}.street`}
-                          label="Street Address"
-                          placeholder="Enter street address"
-                        />
-                      </div>
                       <FormInput
                         name={`addresses.${index}.city`}
                         label="City"
@@ -318,31 +351,23 @@ export function CreateSupplier() {
                       <FormInput
                         name={`addresses.${index}.state`}
                         label="State/Province"
-                        placeholder="Enter state/province"
-                      />
-                      <FormInput
-                        name={`addresses.${index}.postalCode`}
-                        label="Postal Code"
-                        placeholder="Enter postal code"
+                        placeholder="Enter state or province"
                       />
                       <FormInput
                         name={`addresses.${index}.country`}
                         label="Country"
                         placeholder="Enter country"
                       />
-                    </div>
-
-                    <div className="mt-4 flex justify-end">
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={() => removeAddress(index)}
-                        disabled={addressFields.length === 1}
-                        className="flex items-center gap-2"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Remove Address
-                      </Button>
+                      <FormInput
+                        name={`addresses.${index}.postalCode`}
+                        label="Postal Code"
+                        placeholder="Enter postal code"
+                      />
+                      <FormCheckbox
+                        name={`addresses.${index}.isPrimary`}
+                        label=""
+                        checkboxLabel="Primary Address"
+                      />
                     </div>
                   </div>
                 ))}
@@ -350,11 +375,13 @@ export function CreateSupplier() {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Contacts</h2>
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      appendContact({
+                  <h3 className="text-lg font-semibold">Contacts</h3>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => appendContact({
                         firstName: '',
                         lastName: '',
                         title: '',
@@ -362,21 +389,28 @@ export function CreateSupplier() {
                         phone: '',
                         isPrimary: false,
                         department: '',
-                      })
-                    }
-                    className="flex items-center gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Contact
-                  </Button>
+                      })}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Contact
+                    </Button>
+                    {contactFields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeContact(contactFields.length - 1)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remove Contact
+                      </Button>
+                    )}
+                  </div>
                 </div>
-
+                <div>Debug: Contacts section rendering, {contactFields.length} fields</div>
                 {contactFields.map((field, index) => (
-                  <div
-                    key={field.id}
-                    className="rounded-lg border p-6"
-                  >
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div key={field.id} className="rounded-lg border bg-card p-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <FormInput
                         name={`contacts.${index}.firstName`}
                         label="First Name"
@@ -408,26 +442,11 @@ export function CreateSupplier() {
                         label="Department"
                         placeholder="Enter department"
                       />
-                      <div className="col-span-3">
-                        <FormCheckbox
-                          name={`contacts.${index}.isPrimary`}
-                          label="Primary Contact"
-                          checkboxLabel="This is the primary contact"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex justify-end">
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={() => removeContact(index)}
-                        disabled={contactFields.length === 1}
-                        className="flex items-center gap-2"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Remove Contact
-                      </Button>
+                      <FormCheckbox
+                        name={`contacts.${index}.isPrimary`}
+                        label=""
+                        checkboxLabel="Primary Contact"
+                      />
                     </div>
                   </div>
                 ))}
@@ -435,84 +454,41 @@ export function CreateSupplier() {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Categories</h2>
-                  <Button
-                    type="button"
-                    onClick={() => appendCategory('')}
-                    className="flex items-center gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Category
-                  </Button>
-                </div>
-
-                {categoryFields.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-2">
-                    <FormInput
-                      name={`categories.${index}`}
-                      label={index === 0 ? "Category" : ""}
-                      placeholder="Enter product/service category"
-                    />
+                  <h3 className="text-lg font-semibold">Categories</h3>
+                  <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => removeCategory(index)}
-                      disabled={categoryFields.length === 1}
-                      className="mt-auto mb-0.5"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => appendCategory('')}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Category
                     </Button>
+                    {categoryFields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeCategory(categoryFields.length - 1)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remove Category
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div>Debug: Categories section rendering, {categoryFields.length} fields</div>
+                {categoryFields.map((field, index) => (
+                  <div key={field.id} className="rounded-lg border bg-card p-6">
+                    <FormInput
+                      name={`categories.${index}`}
+                      label={`Category ${index + 1}`}
+                      placeholder="Enter category name"
+                    />
                   </div>
                 ))}
               </div>
-
-              <FormSection title="Banking Information">
-                <FormInput
-                  name="bankInformation.bankName"
-                  label="Bank Name"
-                  placeholder="Enter bank name"
-                />
-                <FormInput
-                  name="bankInformation.accountName"
-                  label="Account Name"
-                  placeholder="Enter account name"
-                />
-                <FormInput
-                  name="bankInformation.accountNumber"
-                  label="Account Number"
-                  placeholder="Enter account number"
-                />
-                <FormInput
-                  name="bankInformation.routingNumber"
-                  label="Routing Number"
-                  placeholder="Enter routing number"
-                />
-                <FormSelect
-                  name="bankInformation.currency"
-                  label="Currency"
-                  options={currencyOptions}
-                />
-                <FormInput
-                  name="bankInformation.swiftCode"
-                  label="SWIFT Code"
-                  placeholder="Enter SWIFT code (international)"
-                />
-                <FormInput
-                  name="bankInformation.iban"
-                  label="IBAN"
-                  placeholder="Enter IBAN (international)"
-                />
-              </FormSection>
-
-              <FormSection title="Additional Information">
-                <FormTextarea
-                  name="notes"
-                  label="Notes"
-                  placeholder="Enter any additional notes"
-                  className="col-span-2"
-                />
-              </FormSection>
             </>
           );
         }}

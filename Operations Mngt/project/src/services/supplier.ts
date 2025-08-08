@@ -1966,6 +1966,87 @@ export const supplierService = {
     }
   },
 
+  createQualityRecord: async (record: Omit<SupplierQualityRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<SupplierQualityRecord>> => {
+    try {
+      // First try to create in Supabase
+      const response = await api.post('/api/v1/supplier-quality', record);
+      return response.data;
+    } catch (error) {
+      console.log('Falling back to mock data for quality record creation');
+      
+      // Fall back to mock data
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const newRecord: SupplierQualityRecord = {
+        id: `quality-${MOCK_QUALITY_DATA.length + 1}`,
+        ...record,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      MOCK_QUALITY_DATA.push(newRecord);
+
+      return {
+        data: newRecord,
+        status: 201,
+      };
+    }
+  },
+
+  createFinancialHealth: async (health: Omit<SupplierFinancialHealth, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<SupplierFinancialHealth>> => {
+    try {
+      // First try to create in Supabase
+      const response = await api.post('/api/v1/supplier-financial-health', health);
+      return response.data;
+    } catch (error) {
+      console.log('Falling back to mock data for financial health creation');
+      
+      // Fall back to mock data
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const newHealth: SupplierFinancialHealth = {
+        id: `financial-${MOCK_FINANCIAL_DATA.length + 1}`,
+        ...health,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      MOCK_FINANCIAL_DATA.push(newHealth);
+
+      return {
+        data: newHealth,
+        status: 201,
+      };
+    }
+  },
+
+  createSustainability: async (sustainability: Omit<SupplierSustainability, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<SupplierSustainability>> => {
+    try {
+      // First try to create in Supabase
+      const response = await api.post('/api/v1/supplier-sustainability', sustainability);
+      return response.data;
+    } catch (error) {
+      console.log('Falling back to mock data for sustainability creation');
+      
+      // Fall back to mock data
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const newSustainability: SupplierSustainability = {
+        id: `sustainability-${MOCK_SUSTAINABILITY_DATA.length + 1}`,
+        ...sustainability,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      MOCK_SUSTAINABILITY_DATA.push(newSustainability);
+
+      return {
+        data: newSustainability,
+        status: 201,
+      };
+    }
+  },
+
   // Supplier Analytics
   getSupplierAnalytics: async (): Promise<ApiResponse<{
     supplierCounts: {

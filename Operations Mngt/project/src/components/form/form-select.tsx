@@ -26,16 +26,12 @@ export function FormSelect({
   onChange,
   ...props
 }: FormSelectProps) {
-  const { setValue, register } = useFormContext();
-  
-  if (!register || !setValue) {
-    console.error(`FormSelect: No form context found for field "${name}". Make sure this component is used within a FormProvider.`);
-    return null;
-  }
+  const { setValue } = useFormContext();
   
   // Handle both the form context and any custom onChange handler
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setValue(name, e.target.value, { shouldValidate: true });
+    const value = e.target.value;
+    setValue(name, value, { shouldValidate: true });
     if (onChange) {
       onChange(e);
     }
@@ -44,9 +40,10 @@ export function FormSelect({
   return (
     <FormFieldWrapper name={name} label={label} description={description} className={className}>
       <SimpleSelect 
-        {...register(name)}
         onChange={handleChange}
         {...props}
+        // Ensure proper value handling
+        defaultValue={props.defaultValue || ''}
       >
         {placeholder && (
           <option value="" disabled>

@@ -266,6 +266,33 @@ export function useSuppliers() {
     });
   };
 
+  const useCreateQualityRecord = () => {
+    return useMutation({
+      mutationFn: supplierService.createQualityRecord,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['supplier-quality'] });
+      },
+    });
+  };
+
+  const useCreateFinancialHealth = () => {
+    return useMutation({
+      mutationFn: supplierService.createFinancialHealth,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['supplier-financial-health'] });
+      },
+    });
+  };
+
+  const useCreateSustainability = () => {
+    return useMutation({
+      mutationFn: supplierService.createSustainability,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['supplier-sustainability'] });
+      },
+    });
+  };
+
   // Supplier Analytics
   const useSupplierAnalytics = () => {
     return useQuery({
@@ -326,8 +353,11 @@ export function useSuppliers() {
     useSupplierSustainabilityById,
     useSupplierQualityRecords,
     useSupplierQualityRecordById,
+    useCreateQualityRecord,
     useSupplierFinancialHealth,
     useSupplierFinancialHealthById,
+    useCreateFinancialHealth,
+    useCreateSustainability,
     useSupplierAnalytics,
     useUploadDocument,
     useRegisterSupplier,

@@ -88,9 +88,13 @@ import SupplierCreate from '@/pages/suppliers/create-supplier';
 import SupplierEdit from '@/pages/suppliers/edit-supplier';
 import SupplierDetail from '@/pages/suppliers/supplier-detail';
 import SupplierFinancialHealth from '@/pages/suppliers/financial-health';
+import CreateFinancialHealth from '@/pages/suppliers/financial-health/create-financial-health';
 import SupplierQualityManagement from '@/pages/suppliers/quality-management';
+import CreateQualityRecord from '@/pages/suppliers/quality-management/create-quality-record';
 import SupplierRiskAssessment from '@/pages/suppliers/risk-assessment';
+import CreateRiskAssessment from '@/pages/suppliers/risk-assessment/create-assessment';
 import SupplierSustainability from '@/pages/suppliers/sustainability';
+import CreateSustainability from '@/pages/suppliers/sustainability/create-sustainability';
 
 // Transportation Management
 import Carriers from '@/pages/transportation/carriers';
@@ -352,9 +356,13 @@ export const AppRouter = createBrowserRouter([
           { path: ':id/edit', element: <SupplierEdit /> },
           { path: ':id', element: <SupplierDetail /> },
           { path: 'financial-health', element: <SupplierFinancialHealth /> },
+          { path: 'financial-health/create', element: <CreateFinancialHealth /> },
           { path: 'quality-management', element: <SupplierQualityManagement /> },
+          { path: 'quality-management/create', element: <CreateQualityRecord /> },
           { path: 'risk-assessment', element: <SupplierRiskAssessment /> },
+          { path: 'risk-assessment/create', element: <CreateRiskAssessment /> },
           { path: 'sustainability', element: <SupplierSustainability /> },
+          { path: 'sustainability/create', element: <CreateSustainability /> },
         ],
       },
       // Transportation Management
