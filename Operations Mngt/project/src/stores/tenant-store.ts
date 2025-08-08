@@ -26,16 +26,16 @@ interface TenantState {
 // Mock tenant data for development
 const MOCK_TENANTS: Tenant[] = [
   {
-    id: 'tenant-1',
+    id: '550e8400-e29b-41d4-a716-446655440001',
     name: 'Demo Company',
-    slug: 'demo',
-    domain: 'demo.example.com',
+    slug: 'demo-supplier-test',
+    domain: 'demo-supplier-test.example.com',
     plan: 'PROFESSIONAL',
     userRole: 'ADMIN',
     isOwner: true,
   },
   {
-    id: 'tenant-2',
+    id: '550e8400-e29b-41d4-a716-446655440002',
     name: 'Test Organization',
     slug: 'test',
     domain: 'test.example.com',
@@ -48,8 +48,8 @@ const MOCK_TENANTS: Tenant[] = [
 export const useTenantStore = create<TenantState>()(
   persist(
     (set, get) => ({
-      currentTenant: null,
-      userTenants: [],
+      currentTenant: MOCK_TENANTS[0], // Set default tenant for development
+      userTenants: MOCK_TENANTS,
       isLoading: false,
       error: null,
       

@@ -5,6 +5,8 @@ import { suppliers, supplierAddresses, supplierContacts, supplierBankInformation
 import { eq, and, desc, like, sql, or } from 'drizzle-orm';
 import { AppError } from '../utils/app-error';
 import { authenticate, hasPermissions } from '../middleware/auth';
+import type { AuthenticatedRequest } from '../middleware/auth';
+import type { TenantRequest } from '../middleware/tenant';
 
 // Define route schemas
 const createSupplierSchema = z.object({
@@ -17,9 +19,9 @@ const createSupplierSchema = z.object({
   website: z.string().url().optional(),
   industry: z.string().optional(),
   description: z.string().optional(),
-  yearEstablished: z.number().int().positive().optional(),
-  annualRevenue: z.number().positive().optional(),
-  employeeCount: z.number().int().positive().optional(),
+  yearEstablished: z.number().int().positive().optional().or(z.undefined()),
+  annualRevenue: z.number().positive().optional().or(z.undefined()),
+  employeeCount: z.number().int().positive().optional().or(z.undefined()),
   businessClassifications: z.array(z.enum([
     'LARGE_ENTERPRISE', 'SMALL_BUSINESS', 'MINORITY_OWNED', 'WOMEN_OWNED', 
     'VETERAN_OWNED', 'DISABLED_OWNED', 'DISADVANTAGED_BUSINESS'
@@ -47,11 +49,11 @@ const createSupplierSchema = z.object({
     department: z.string().optional(),
   })).min(1, 'At least one contact is required'),
   bankInformation: z.object({
-    bankName: z.string().min(1, 'Bank name is required'),
-    accountName: z.string().min(1, 'Account name is required'),
-    accountNumber: z.string().min(1, 'Account number is required'),
-    routingNumber: z.string().min(1, 'Routing number is required'),
-    currency: z.string().min(1, 'Currency is required'),
+    bankName: z.string().optional(),
+    accountName: z.string().optional(),
+    accountNumber: z.string().optional(),
+    routingNumber: z.string().optional(),
+    currency: z.string().optional(),
     swiftCode: z.string().optional(),
     iban: z.string().optional(),
   }).optional(),
@@ -59,12 +61,13 @@ const createSupplierSchema = z.object({
 
 // Supplier routes
 export default async function supplierRoutes(fastify: FastifyInstance) {
-  // Apply authentication middleware to all routes
+  // Add global authentication middleware
   fastify.addHook('preHandler', authenticate);
+  
+  // Authentication and tenant middleware are already applied globally
   
   // Get all suppliers
   fastify.get('/', {
-    preHandler: hasPermissions(['manage_suppliers']),
     schema: {
       querystring: {
         type: 'object',
@@ -106,11 +109,11 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
         },
       },
     },
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  }, async (request: TenantRequest & AuthenticatedRequest, reply: FastifyReply) => {
     const { page = 1, pageSize = 10, status, type, name, category, classification } = request.query as any;
     
     // Build query
-    let query = db.select().from(suppliers);
+    let query = db.select().from(suppliers).where(eq(suppliers.tenantId, request.tenant?.id));
     
     // Apply filters
     if (status) {
@@ -122,34 +125,30 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
     }
     
     // Add more complex filtering for name, category, classification, etc.
-    if (search) {
-      conditions.push(
+    if (name) {
+      query = query.where(
         or(
-          like(suppliers.name, `%${search}%`),
-          like(suppliers.code, `%${search}%`),
-          like(suppliers.description, `%${search}%`)
+          like(suppliers.name, `%${name}%`),
+          like(suppliers.code, `%${name}%`),
+          like(suppliers.description, `%${name}%`)
         )
       );
     }
     
     if (category) {
-      conditions.push(eq(suppliers.category, category));
+      query = query.where(eq(suppliers.categories, category));
     }
     
     if (classification) {
-      conditions.push(eq(suppliers.classification, classification));
+      query = query.where(eq(suppliers.businessClassifications, classification));
     }
     
     if (status) {
-      conditions.push(eq(suppliers.status, status));
-    }
-    
-    if (riskLevel) {
-      conditions.push(eq(suppliers.riskLevel, riskLevel));
+      query = query.where(eq(suppliers.status, status));
     }
     
     // Get total count for pagination
-    const totalQuery = db.select({ count: db.fn.count() }).from(suppliers);
+    const totalQuery = db.select({ count: sql`count(*)` }).from(suppliers).where(eq(suppliers.tenantId, request.tenant?.id));
     const [{ count }] = await totalQuery.execute();
     const total = Number(count);
     
@@ -212,23 +211,23 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
     const { id } = request.params as { id: string };
     
     // Get supplier
-    const supplier = await db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
+    const supplier = await db.select().from(suppliers).where(and(eq(suppliers.id, id), eq(suppliers.tenantId, request.tenant?.id))).limit(1);
     
     if (!supplier.length) {
       throw new AppError('Supplier not found', 404);
     }
     
     // Get addresses
-    const addresses = await db.select().from(supplierAddresses).where(eq(supplierAddresses.supplierId, id));
+    const addresses = await db.select().from(supplierAddresses).where(and(eq(supplierAddresses.supplierId, id), eq(supplierAddresses.tenantId, request.tenant?.id)));
     
     // Get contacts
-    const contacts = await db.select().from(supplierContacts).where(eq(supplierContacts.supplierId, id));
+    const contacts = await db.select().from(supplierContacts).where(and(eq(supplierContacts.supplierId, id), eq(supplierContacts.tenantId, request.tenant?.id)));
     
     // Get bank information
-    const bankInfo = await db.select().from(supplierBankInformation).where(eq(supplierBankInformation.supplierId, id)).limit(1);
+    const bankInfo = await db.select().from(supplierBankInformation).where(and(eq(supplierBankInformation.supplierId, id), eq(supplierBankInformation.tenantId, request.tenant?.id))).limit(1);
     
     // Get documents
-    const documents = await db.select().from(supplierDocuments).where(eq(supplierDocuments.supplierId, id));
+    const documents = await db.select().from(supplierDocuments).where(and(eq(supplierDocuments.supplierId, id), eq(supplierDocuments.tenantId, request.tenant?.id)));
     
     return {
       ...supplier[0],
@@ -322,10 +321,25 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
     },
   }, async (request: any, reply: FastifyReply) => {
     try {
+      console.log('=== SUPPLIER CREATION REQUEST ===');
+      console.log('Request headers:', request.headers);
+      console.log('Request tenant:', request.tenant);
+      console.log('Request user:', request.user);
+      console.log('Request body:', request.body);
+      
       const supplierData = createSupplierSchema.parse(request.body);
       
+      // Get tenant ID from request
+      const tenantId = request.tenant?.id;
+      console.log('Tenant ID from request:', tenantId);
+      
+      if (!tenantId) {
+        console.log('No tenant ID found in request');
+        throw new AppError('Tenant ID is required', 400);
+      }
+      
       // Check if supplier code already exists
-      const existingSupplier = await db.select({ id: suppliers.id }).from(suppliers).where(eq(suppliers.code, supplierData.code)).limit(1);
+      const existingSupplier = await db.select({ id: suppliers.id }).from(suppliers).where(and(eq(suppliers.code, supplierData.code), eq(suppliers.tenantId, tenantId))).limit(1);
       
       if (existingSupplier.length) {
         throw new AppError('Supplier with this code already exists', 409);
@@ -333,8 +347,19 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
       
       // Start a transaction
       const result = await db.transaction(async (tx) => {
+        console.log('Creating supplier with data:', {
+          tenantId,
+          name: supplierData.name,
+          code: supplierData.code,
+          type: supplierData.type,
+          status: supplierData.status,
+          taxId: supplierData.taxId,
+          registrationNumber: supplierData.registrationNumber,
+        });
+        
         // Create supplier
         const [newSupplier] = await tx.insert(suppliers).values({
+          tenantId: tenantId,
           name: supplierData.name,
           code: supplierData.code,
           type: supplierData.type,
@@ -357,6 +382,7 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
         
         // Create addresses
         const addressesToInsert = supplierData.addresses.map(address => ({
+          tenantId: tenantId,
           supplierId: newSupplier.id,
           ...address,
         }));
@@ -365,6 +391,7 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
         
         // Create contacts
         const contactsToInsert = supplierData.contacts.map(contact => ({
+          tenantId: tenantId,
           supplierId: newSupplier.id,
           ...contact,
         }));
@@ -374,6 +401,7 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
         // Create bank information if provided
         if (supplierData.bankInformation) {
           await tx.insert(supplierBankInformation).values({
+            tenantId: tenantId,
             supplierId: newSupplier.id,
             ...supplierData.bankInformation,
           });
@@ -382,12 +410,14 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
         return newSupplier;
       });
       
+      console.log('Supplier created successfully:', result);
       reply.status(201);
       return {
         ...result,
         message: 'Supplier created successfully',
       };
     } catch (error) {
+      console.error('Error in supplier creation:', error);
       if (error instanceof z.ZodError) {
         throw new AppError('Validation error', 400, error.errors);
       }
@@ -443,7 +473,7 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
       const supplierData = createSupplierSchema.partial().parse(request.body);
       
       // Check if supplier exists
-      const existingSupplier = await db.select({ id: suppliers.id }).from(suppliers).where(eq(suppliers.id, id)).limit(1);
+      const existingSupplier = await db.select({ id: suppliers.id }).from(suppliers).where(and(eq(suppliers.id, id), eq(suppliers.tenantId, request.tenant?.id))).limit(1);
       
       if (!existingSupplier.length) {
         throw new AppError('Supplier not found', 404);
@@ -454,7 +484,7 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
         ...supplierData,
         updatedBy: request.user.id,
         updatedAt: new Date().toISOString(),
-      }).where(eq(suppliers.id, id));
+      }).where(and(eq(suppliers.id, id), eq(suppliers.tenantId, request.tenant?.id)));
       
       return {
         id,
@@ -492,7 +522,7 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
     const { id } = request.params as { id: string };
     
     // Check if supplier exists
-    const existingSupplier = await db.select({ id: suppliers.id }).from(suppliers).where(eq(suppliers.id, id)).limit(1);
+    const existingSupplier = await db.select({ id: suppliers.id }).from(suppliers).where(and(eq(suppliers.id, id), eq(suppliers.tenantId, request.tenant?.id))).limit(1);
     
     if (!existingSupplier.length) {
       throw new AppError('Supplier not found', 404);
@@ -501,19 +531,19 @@ export default async function supplierRoutes(fastify: FastifyInstance) {
     // Start a transaction
     await db.transaction(async (tx) => {
       // Delete bank information
-      await tx.delete(supplierBankInformation).where(eq(supplierBankInformation.supplierId, id));
+      await tx.delete(supplierBankInformation).where(and(eq(supplierBankInformation.supplierId, id), eq(supplierBankInformation.tenantId, request.tenant?.id)));
       
       // Delete contacts
-      await tx.delete(supplierContacts).where(eq(supplierContacts.supplierId, id));
+      await tx.delete(supplierContacts).where(and(eq(supplierContacts.supplierId, id), eq(supplierContacts.tenantId, request.tenant?.id)));
       
       // Delete addresses
-      await tx.delete(supplierAddresses).where(eq(supplierAddresses.supplierId, id));
+      await tx.delete(supplierAddresses).where(and(eq(supplierAddresses.supplierId, id), eq(supplierAddresses.tenantId, request.tenant?.id)));
       
       // Delete documents
-      await tx.delete(supplierDocuments).where(eq(supplierDocuments.supplierId, id));
+      await tx.delete(supplierDocuments).where(and(eq(supplierDocuments.supplierId, id), eq(supplierDocuments.tenantId, request.tenant?.id)));
       
       // Delete supplier
-      await tx.delete(suppliers).where(eq(suppliers.id, id));
+      await tx.delete(suppliers).where(and(eq(suppliers.id, id), eq(suppliers.tenantId, request.tenant?.id)));
     });
     
     return {

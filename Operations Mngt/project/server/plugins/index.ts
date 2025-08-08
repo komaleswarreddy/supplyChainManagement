@@ -5,6 +5,7 @@ import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import { FastifyInstance } from 'fastify';
 import { AUTH_CONFIG, SERVER_CONFIG } from '../config';
+import tenantMiddleware from '../middleware/tenant';
 
 // Register all plugins
 export default fastifyPlugin(async (fastify: FastifyInstance) => {
@@ -71,4 +72,7 @@ export default fastifyPlugin(async (fastify: FastifyInstance) => {
     },
     transformSpecificationClone: true,
   });
+
+  // Register tenant middleware
+  await fastify.register(tenantMiddleware);
 });

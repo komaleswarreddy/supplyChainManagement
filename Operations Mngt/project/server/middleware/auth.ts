@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { AUTH_CONFIG } from '../config';
+import { AUTH_CONFIG, SERVER_CONFIG } from '../config';
 import { AppError } from '../utils/app-error';
 import { logger } from '../utils/logger';
 import { verifyToken, verifyKeycloakToken, createOrUpdateUserFromKeycloak } from '../utils/auth';
@@ -24,6 +24,20 @@ export const authenticate = async (
   reply: FastifyReply
 ) => {
   try {
+    // In development mode, allow requests without authentication for testing
+    if (SERVER_CONFIG.environment === 'development') {
+      // Set a default user for development
+      request.user = {
+        id: 'dev-user-1',
+        email: 'dev@example.com',
+        name: 'Development User',
+        roles: ['admin'],
+        permissions: ['manage_suppliers', 'view_suppliers', 'manage_users'],
+        currentTenantId: '550e8400-e29b-41d4-a716-446655440001', // Use the tenant from sample data
+      };
+      return;
+    }
+
     // Get the authorization header
     const authHeader = request.headers.authorization;
     
@@ -64,41 +78,37 @@ export const authenticate = async (
         permissions: decoded.permissions || [],
       };
     }
-    
-    return;
   } catch (error) {
     logger.error('Authentication error', { error });
     
     if (error instanceof AppError) {
-      return reply.status(error.statusCode).send({ message: error.message });
+      throw error;
     }
     
-    return reply.status(401).send({ message: 'Unauthorized - Invalid token' });
+    throw new AppError('Unauthorized - Invalid token', 401);
   }
 };
 
 // Middleware to check if user has required roles
 export const hasRoles = (roles: string[]) => {
-  return (request: AuthenticatedRequest, reply: FastifyReply, done: () => void) => {
+  return async (request: AuthenticatedRequest, reply: FastifyReply) => {
     if (!request.user) {
-      return reply.status(401).send({ message: 'Unauthorized - Authentication required' });
+      throw new AppError('Unauthorized - Authentication required', 401);
     }
     
     const hasRequiredRole = request.user.roles.some(role => roles.includes(role));
     
     if (!hasRequiredRole) {
-      return reply.status(403).send({ message: 'Forbidden - Insufficient role permissions' });
+      throw new AppError('Forbidden - Insufficient role permissions', 403);
     }
-    
-    done();
   };
 };
 
 // Middleware to check if user has required permissions
 export const hasPermissions = (permissions: string[]) => {
-  return (request: AuthenticatedRequest, reply: FastifyReply, done: () => void) => {
+  return async (request: AuthenticatedRequest, reply: FastifyReply) => {
     if (!request.user) {
-      return reply.status(401).send({ message: 'Unauthorized - Authentication required' });
+      throw new AppError('Unauthorized - Authentication required', 401);
     }
     
     const hasRequiredPermission = request.user.permissions.some(permission => 
@@ -106,10 +116,8 @@ export const hasPermissions = (permissions: string[]) => {
     );
     
     if (!hasRequiredPermission) {
-      return reply.status(403).send({ message: 'Forbidden - Insufficient permissions' });
+      throw new AppError('Forbidden - Insufficient permissions', 403);
     }
-    
-    done();
   };
 };
 

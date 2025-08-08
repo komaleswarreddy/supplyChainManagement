@@ -37,8 +37,7 @@ export function FormContainer<T extends z.ZodType>({
 }: FormContainerProps<T>) {
   const { toast } = useToast();
   
-  // Add debugging for form initialization
-  console.log('FormContainer: Initializing form with defaultValues:', defaultValues);
+
 
   const methods = useForm<z.infer<T>>({
     resolver: zodResolver(schema),
@@ -48,9 +47,8 @@ export function FormContainer<T extends z.ZodType>({
 
   const handleSubmit = async (values: z.infer<T>) => {
     try {
-      console.log('FormContainer: Submitting form with values:', values);
       await onSubmit(values);
-      toast.success('Form submitted successfully');
+      // Don't show default success message - let the component handle it
     } catch (error) {
       console.error('Form submission error:', error);
       toast.error(error instanceof Error ? error.message : 'An error occurred');

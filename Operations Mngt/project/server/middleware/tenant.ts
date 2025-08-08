@@ -19,16 +19,34 @@ export interface TenantRequest extends FastifyRequest {
 // Middleware to resolve tenant from header or subdomain
 export const resolveTenant = async (
   request: TenantRequest,
-  reply: FastifyReply,
-  next: () => void
+  reply: FastifyReply
 ) => {
   try {
     // Get tenant from header
     const tenantId = request.headers['x-tenant-id'] as string;
     const tenantSlug = request.headers['x-tenant-slug'] as string;
     
+    console.log('Tenant resolution - Headers:', {
+      tenantId,
+      tenantSlug,
+      allHeaders: request.headers
+    });
+    
+    // If tenant ID is provided in header, use it directly
+    if (tenantId) {
+      console.log('Using tenant ID from header:', tenantId);
+      // For development, we'll create a basic tenant object
+      request.tenant = {
+        id: tenantId,
+        name: 'Demo Company',
+        slug: 'demo-supplier-test',
+        settings: { theme: 'light', timezone: 'UTC' },
+      };
+      return;
+    }
+    
     // If no tenant info provided, check subdomain
-    if (!tenantId && !tenantSlug) {
+    if (!tenantSlug) {
       const host = request.headers.host;
       if (host && host.includes('.')) {
         const subdomain = host.split('.')[0];
@@ -42,7 +60,7 @@ export const resolveTenant = async (
               slug: tenant[0].slug,
               settings: tenant[0].settings,
             };
-            return next();
+            return;
           }
         }
       }
@@ -63,23 +81,31 @@ export const resolveTenant = async (
               slug: tenant[0].slug,
               settings: tenant[0].settings,
             };
-            return next();
+            return;
           }
         }
       }
       
+      // In development mode, set a default tenant if none found
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Setting default tenant for development');
+        request.tenant = {
+          id: '550e8400-e29b-41d4-a716-446655440001',
+          name: 'Demo Company',
+          slug: 'demo-supplier-test',
+          settings: { theme: 'light', timezone: 'UTC' },
+        };
+        return;
+      }
+      
       // No tenant found, but we'll allow the request to continue
       // This is useful for public routes or tenant creation
-      return next();
+      console.log('No tenant found, allowing request to continue');
+      return;
     }
     
-    // Look up tenant by ID or slug
-    let tenant;
-    if (tenantId) {
-      tenant = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
-    } else if (tenantSlug) {
-      tenant = await db.select().from(tenants).where(eq(tenants.slug, tenantSlug)).limit(1);
-    }
+    // Look up tenant by slug
+    const tenant = await db.select().from(tenants).where(eq(tenants.slug, tenantSlug)).limit(1);
     
     if (!tenant || !tenant.length) {
       throw new AppError('Tenant not found', 404);
@@ -97,29 +123,26 @@ export const resolveTenant = async (
       slug: tenant[0].slug,
       settings: tenant[0].settings,
     };
-    
-    next();
   } catch (error) {
     logger.error('Error resolving tenant', { error });
     
     if (error instanceof AppError) {
-      return reply.status(error.statusCode).send({ message: error.message });
+      throw error;
     }
     
-    return reply.status(500).send({ message: 'Error resolving tenant' });
+    throw new AppError('Error resolving tenant', 500);
   }
 };
 
 // Middleware to verify user has access to tenant
 export const verifyTenantAccess = async (
   request: TenantRequest & { user?: any },
-  reply: FastifyReply,
-  next: () => void
+  reply: FastifyReply
 ) => {
   try {
     // Skip if no tenant or no user
     if (!request.tenant || !request.user) {
-      return next();
+      return;
     }
     
     // Check if user has access to tenant
@@ -147,16 +170,14 @@ export const verifyTenantAccess = async (
         .set({ currentTenantId: request.tenant.id })
         .where(eq(users.id, request.user.id));
     }
-    
-    next();
   } catch (error) {
     logger.error('Error verifying tenant access', { error });
     
     if (error instanceof AppError) {
-      return reply.status(error.statusCode).send({ message: error.message });
+      throw error;
     }
     
-    return reply.status(500).send({ message: 'Error verifying tenant access' });
+    throw new AppError('Error verifying tenant access', 500);
   }
 };
 

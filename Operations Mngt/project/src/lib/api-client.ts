@@ -3,7 +3,7 @@ import { API_BASE_URL } from '@/config/constants';
 import { keycloak } from './keycloak';
 import { useTenantStore } from '@/stores/tenant-store';
 
-// Create axios instance - DISABLED FOR DEVELOPMENT
+// Create axios instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -11,51 +11,73 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor - COMPLETELY DISABLED FOR DEVELOPMENT
+// Request interceptor
 apiClient.interceptors.request.use(
   async (config) => {
-    // For development, completely block all API calls
-    console.warn('API calls completely disabled for development - using mock data only');
-    throw new Error('API calls disabled for development - using mock data');
+    try {
+      // Get tenant ID from store
+      const tenantStore = useTenantStore.getState();
+      if (tenantStore.currentTenant?.id) {
+        config.headers['X-Tenant-ID'] = tenantStore.currentTenant.id;
+      }
+
+      // Add authentication token if available
+      if (keycloak.token) {
+        config.headers.Authorization = `Bearer ${keycloak.token}`;
+        
+        // Refresh token if needed
+        if (keycloak.isTokenExpired(30)) {
+          await keycloak.updateToken(70);
+          config.headers.Authorization = `Bearer ${keycloak.token}`;
+        }
+      }
+
+      return config;
+    } catch (error) {
+      console.error('Request interceptor error:', error);
+      return config;
+    }
   },
   (error) => {
     return Promise.reject(error);
   }
 );
 
-// Response interceptor - COMPLETELY DISABLED FOR DEVELOPMENT
+// Response interceptor
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    // For development, always return mock data instead of making API calls
-    console.warn('API call blocked for development - using mock data');
-    return Promise.reject(new Error('API calls disabled for development - using mock data'));
+    if (error.response?.status === 401) {
+      // Token expired or invalid, redirect to login
+      try {
+        await keycloak.logout();
+      } catch (logoutError) {
+        console.error('Logout error:', logoutError);
+      }
+    }
+    
+    return Promise.reject(error);
   }
 );
 
-// API client wrapper - COMPLETELY DISABLED FOR DEVELOPMENT
+// API client wrapper
 export const api = {
   get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-    console.warn(`API GET call to ${url} completely disabled for development`);
-    return Promise.reject(new Error('API calls completely disabled for development'));
+    return apiClient.get(url, config);
   },
   post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-    console.warn(`API POST call to ${url} completely disabled for development`);
-    return Promise.reject(new Error('API calls completely disabled for development'));
+    return apiClient.post(url, data, config);
   },
   put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-    console.warn(`API PUT call to ${url} completely disabled for development`);
-    return Promise.reject(new Error('API calls completely disabled for development'));
+    return apiClient.put(url, data, config);
   },
   delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-    console.warn(`API DELETE call to ${url} completely disabled for development`);
-    return Promise.reject(new Error('API calls completely disabled for development'));
+    return apiClient.delete(url, config);
   },
   patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
-    console.warn(`API PATCH call to ${url} completely disabled for development`);
-    return Promise.reject(new Error('API calls completely disabled for development'));
+    return apiClient.patch(url, data, config);
   },
 };
 
-// Export the raw axios instance for advanced use cases - DISABLED
+// Export the raw axios instance for advanced use cases
 export { apiClient };

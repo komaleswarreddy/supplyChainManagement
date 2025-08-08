@@ -12,7 +12,7 @@ import { users } from '../db/schema/users';
 import { suppliers } from '../db/schema/suppliers';
 import { eq, and, or, like, gte, lte, desc, asc, count, sum } from 'drizzle-orm';
 import { AppError } from '../utils/app-error';
-import { getCurrentUser } from '../middleware/auth';
+import { getCurrentUser, authenticate } from '../middleware/auth';
 
 // Validation Schemas
 const customerSchema = z.object({
@@ -1125,6 +1125,9 @@ async function analyticsRoutes(fastify: FastifyInstance) {
 }
 
 export default async function orderManagementRoutes(fastify: FastifyInstance) {
+  // Add global authentication middleware
+  fastify.addHook('preHandler', authenticate);
+  
   await fastify.register(customerRoutes, { prefix: '/api/orders' });
   await fastify.register(orderRoutes, { prefix: '/api/orders' });
   await fastify.register(promotionRoutes, { prefix: '/api/orders' });

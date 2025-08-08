@@ -144,6 +144,9 @@ const updateProductSchema = z.object({
 });
 
 export default async function catalogRoutes(fastify: FastifyInstance) {
+  // Add global authentication middleware
+  fastify.addHook('preHandler', authenticate);
+  
   // Get product categories
   fastify.get('/categories', {
     preHandler: hasPermissions(['view_catalog']),

@@ -955,7 +955,7 @@ export const supplierService = {
   ): Promise<PaginatedResponse<Supplier>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get('/api/v1/suppliers', { params });
+      const response = await api.get('/api/suppliers', { params });
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for suppliers');
@@ -1038,7 +1038,7 @@ export const supplierService = {
   getSupplierById: async (id: string): Promise<ApiResponse<Supplier>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get(`/api/v1/suppliers/${id}`);
+      const response = await api.get(`/api/suppliers/${id}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for supplier details');
@@ -1060,61 +1060,29 @@ export const supplierService = {
 
   createSupplier: async (supplier: Omit<Supplier, 'id' | 'code' | 'createdAt' | 'updatedAt' | 'createdBy' | 'audit'>): Promise<ApiResponse<Supplier>> => {
     try {
-      // First try to create in Supabase
-      const response = await api.post('/api/v1/suppliers', supplier);
+      // Generate a unique supplier code
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const supplierCode = `SUP${timestamp}${randomSuffix}`;
+      
+      // Add the generated code to the supplier data
+      const supplierData = {
+        ...supplier,
+        code: supplierCode,
+      };
+      
+      const response = await api.post('/api/suppliers', supplierData);
       return response.data;
     } catch (error) {
-      console.log('Falling back to mock data for supplier creation');
-      
-      // Fall back to mock data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const newSupplier: Supplier = {
-        id: `supplier-${MOCK_SUPPLIERS.length + 1}`,
-        code: `SUP${String(MOCK_SUPPLIERS.length + 1).padStart(3, '0')}`,
-        ...supplier,
-        createdBy: {
-          id: 'user-1',
-          email: 'john.doe@example.com',
-          firstName: 'John',
-          lastName: 'Doe',
-          name: 'John Doe',
-          roles: ['admin'],
-          permissions: ['manage_suppliers'],
-          status: 'active',
-          mfaEnabled: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        audit: {
-          statusHistory: [
-            {
-              status: supplier.status || 'DRAFT',
-              timestamp: new Date().toISOString(),
-              user: {
-                id: 'user-1',
-                name: 'John Doe',
-              },
-            },
-          ],
-        },
-      };
-
-      MOCK_SUPPLIERS.push(newSupplier);
-
-      return {
-        data: newSupplier,
-        status: 201,
-      };
+      console.error('Error creating supplier:', error);
+      throw error;
     }
   },
 
   updateSupplier: async (id: string, supplier: Partial<Supplier>): Promise<ApiResponse<Supplier>> => {
     try {
       // First try to update in Supabase
-      const response = await api.put(`/api/v1/suppliers/${id}`, supplier);
+      const response = await api.put(`/api/suppliers/${id}`, supplier);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for supplier update');
@@ -1163,7 +1131,7 @@ export const supplierService = {
   deleteSupplier: async (id: string): Promise<ApiResponse<void>> => {
     try {
       // First try to delete from Supabase
-      const response = await api.delete(`/api/v1/suppliers/${id}`);
+      const response = await api.delete(`/api/suppliers/${id}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for supplier deletion');
@@ -1190,7 +1158,7 @@ export const supplierService = {
   ): Promise<PaginatedResponse<SupplierQualification>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get('/api/v1/supplier-qualifications', { params });
+      const response = await api.get('/api/supplier-qualifications', { params });
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for qualifications');
@@ -1235,7 +1203,7 @@ export const supplierService = {
   getQualificationById: async (id: string): Promise<ApiResponse<SupplierQualification>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get(`/api/v1/supplier-qualifications/${id}`);
+      const response = await api.get(`/api/supplier-qualifications/${id}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for qualification details');
@@ -1258,7 +1226,7 @@ export const supplierService = {
   createQualification: async (qualification: Omit<SupplierQualification, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<SupplierQualification>> => {
     try {
       // First try to create in Supabase
-      const response = await api.post('/api/v1/supplier-qualifications', qualification);
+      const response = await api.post('/api/supplier-qualifications', qualification);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for qualification creation');
@@ -1295,7 +1263,7 @@ export const supplierService = {
   updateQualification: async (id: string, qualification: Partial<SupplierQualification>): Promise<ApiResponse<SupplierQualification>> => {
     try {
       // First try to update in Supabase
-      const response = await api.put(`/api/v1/supplier-qualifications/${id}`, qualification);
+      const response = await api.put(`/api/supplier-qualifications/${id}`, qualification);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for qualification update');
@@ -1341,7 +1309,7 @@ export const supplierService = {
   ): Promise<PaginatedResponse<SupplierRiskAssessment>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get('/api/v1/supplier-risk-assessments', { params });
+      const response = await api.get('/api/supplier-risk-assessments', { params });
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for risk assessments');
@@ -1386,7 +1354,7 @@ export const supplierService = {
   getRiskAssessmentById: async (id: string): Promise<ApiResponse<SupplierRiskAssessment>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get(`/api/v1/supplier-risk-assessments/${id}`);
+      const response = await api.get(`/api/supplier-risk-assessments/${id}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for risk assessment details');
@@ -1409,7 +1377,7 @@ export const supplierService = {
   createRiskAssessment: async (assessment: Omit<SupplierRiskAssessment, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<SupplierRiskAssessment>> => {
     try {
       // First try to create in Supabase
-      const response = await api.post('/api/v1/supplier-risk-assessments', assessment);
+      const response = await api.post('/api/supplier-risk-assessments', assessment);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for risk assessment creation');
@@ -1457,7 +1425,7 @@ export const supplierService = {
   updateRiskAssessment: async (id: string, assessment: Partial<SupplierRiskAssessment>): Promise<ApiResponse<SupplierRiskAssessment>> => {
     try {
       // First try to update in Supabase
-      const response = await api.put(`/api/v1/supplier-risk-assessments/${id}`, assessment);
+      const response = await api.put(`/api/supplier-risk-assessments/${id}`, assessment);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for risk assessment update');
@@ -1505,7 +1473,7 @@ export const supplierService = {
   ): Promise<PaginatedResponse<SupplierDevelopmentPlan>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get('/api/v1/supplier-development-plans', { params });
+      const response = await api.get('/api/supplier-development-plans', { params });
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for development plans');
@@ -1553,7 +1521,7 @@ export const supplierService = {
   getDevelopmentPlanById: async (id: string): Promise<ApiResponse<SupplierDevelopmentPlan>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get(`/api/v1/supplier-development-plans/${id}`);
+      const response = await api.get(`/api/supplier-development-plans/${id}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for development plan details');
@@ -1576,7 +1544,7 @@ export const supplierService = {
   createDevelopmentPlan: async (plan: Omit<SupplierDevelopmentPlan, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<SupplierDevelopmentPlan>> => {
     try {
       // First try to create in Supabase
-      const response = await api.post('/api/v1/supplier-development-plans', plan);
+      const response = await api.post('/api/supplier-development-plans', plan);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for development plan creation');
@@ -1630,7 +1598,7 @@ export const supplierService = {
   updateDevelopmentPlan: async (id: string, plan: Partial<SupplierDevelopmentPlan>): Promise<ApiResponse<SupplierDevelopmentPlan>> => {
     try {
       // First try to update in Supabase
-      const response = await api.put(`/api/v1/supplier-development-plans/${id}`, plan);
+      const response = await api.put(`/api/supplier-development-plans/${id}`, plan);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for development plan update');
@@ -1682,7 +1650,7 @@ export const supplierService = {
   getSupplierPerformance: async (supplierId: string): Promise<ApiResponse<SupplierPerformance>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get(`/api/v1/supplier-performance/${supplierId}`);
+      const response = await api.get(`/api/supplier-performance/${supplierId}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for supplier performance');
@@ -1705,7 +1673,7 @@ export const supplierService = {
   updateSupplierPerformance: async (supplierId: string, data: Partial<SupplierPerformance>): Promise<ApiResponse<SupplierPerformance>> => {
     try {
       // First try to update in Supabase
-      const response = await api.put(`/api/v1/supplier-performance/${supplierId}`, data);
+      const response = await api.put(`/api/supplier-performance/${supplierId}`, data);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for supplier performance update');
@@ -1753,7 +1721,7 @@ export const supplierService = {
   ): Promise<PaginatedResponse<SupplierSustainability>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get('/api/v1/supplier-sustainability', { params });
+      const response = await api.get('/api/supplier-sustainability', { params });
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for sustainability');
@@ -1801,7 +1769,7 @@ export const supplierService = {
   getSupplierSustainabilityById: async (id: string): Promise<ApiResponse<SupplierSustainability>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get(`/api/v1/supplier-sustainability/${id}`);
+      const response = await api.get(`/api/supplier-sustainability/${id}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for sustainability details');
@@ -1827,7 +1795,7 @@ export const supplierService = {
   ): Promise<PaginatedResponse<SupplierQualityRecord>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get('/api/v1/supplier-quality', { params });
+      const response = await api.get('/api/supplier-quality', { params });
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for quality records');
@@ -1872,7 +1840,7 @@ export const supplierService = {
   getSupplierQualityRecordById: async (id: string): Promise<ApiResponse<SupplierQualityRecord>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get(`/api/v1/supplier-quality/${id}`);
+      const response = await api.get(`/api/supplier-quality/${id}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for quality record details');
@@ -1898,7 +1866,7 @@ export const supplierService = {
   ): Promise<PaginatedResponse<SupplierFinancialHealth>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get('/api/v1/supplier-financial-health', { params });
+      const response = await api.get('/api/supplier-financial-health', { params });
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for financial health');
@@ -1946,7 +1914,7 @@ export const supplierService = {
   getSupplierFinancialHealthById: async (id: string): Promise<ApiResponse<SupplierFinancialHealth>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get(`/api/v1/supplier-financial-health/${id}`);
+      const response = await api.get(`/api/supplier-financial-health/${id}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for financial health details');
@@ -1969,7 +1937,7 @@ export const supplierService = {
   createQualityRecord: async (record: Omit<SupplierQualityRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<SupplierQualityRecord>> => {
     try {
       // First try to create in Supabase
-      const response = await api.post('/api/v1/supplier-quality', record);
+      const response = await api.post('/api/supplier-quality', record);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for quality record creation');
@@ -1996,7 +1964,7 @@ export const supplierService = {
   createFinancialHealth: async (health: Omit<SupplierFinancialHealth, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<SupplierFinancialHealth>> => {
     try {
       // First try to create in Supabase
-      const response = await api.post('/api/v1/supplier-financial-health', health);
+      const response = await api.post('/api/supplier-financial-health', health);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for financial health creation');
@@ -2023,7 +1991,7 @@ export const supplierService = {
   createSustainability: async (sustainability: Omit<SupplierSustainability, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<SupplierSustainability>> => {
     try {
       // First try to create in Supabase
-      const response = await api.post('/api/v1/supplier-sustainability', sustainability);
+      const response = await api.post('/api/supplier-sustainability', sustainability);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for sustainability creation');
@@ -2102,7 +2070,7 @@ export const supplierService = {
   }>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get('/api/v1/supplier-analytics');
+      const response = await api.get('/api/supplier-analytics');
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for supplier analytics');
@@ -2228,7 +2196,7 @@ export const supplierService = {
         formData.append('expiryDate', document.expiryDate);
       }
       
-      const response = await api.post(`/api/v1/suppliers/${supplierId}/documents`, formData, {
+      const response = await api.post(`/api/suppliers/${supplierId}/documents`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -2293,7 +2261,7 @@ export const supplierService = {
   }): Promise<ApiResponse<{ registrationId: string; message: string }>> => {
     try {
       // First try to register in Supabase
-      const response = await api.post('/api/v1/supplier-registration', data);
+      const response = await api.post('/api/supplier-registration', data);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for supplier registration');
@@ -2318,7 +2286,7 @@ export const supplierService = {
   }>> => {
     try {
       // First try to fetch from Supabase
-      const response = await api.get(`/api/v1/supplier-registration/${registrationId}`);
+      const response = await api.get(`/api/supplier-registration/${registrationId}`);
       return response.data;
     } catch (error) {
       console.log('Falling back to mock data for registration status');

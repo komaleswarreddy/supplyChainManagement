@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from '@/config/constants';
 import { keycloak } from './keycloak';
+import { useTenantStore } from '@/stores/tenant-store';
 import type { ErrorResponse } from '@/types/common';
 
 export const api = axios.create({
@@ -11,6 +12,17 @@ export const api = axios.create({
 });
 
 const handleRequest = async (config: InternalAxiosRequestConfig) => {
+  // Add tenant header
+  const tenantStore = useTenantStore.getState();
+  console.log('API Request - Tenant Store State:', tenantStore);
+  
+  if (tenantStore.currentTenant?.id) {
+    config.headers['X-Tenant-ID'] = tenantStore.currentTenant.id;
+    console.log('Setting X-Tenant-ID header:', tenantStore.currentTenant.id);
+  } else {
+    console.log('No current tenant found in store');
+  }
+  
   if (keycloak.token) {
     const hasTokenExpired = keycloak.isTokenExpired();
     if (hasTokenExpired) {
@@ -22,6 +34,8 @@ const handleRequest = async (config: InternalAxiosRequestConfig) => {
     }
     config.headers.Authorization = `Bearer ${keycloak.token}`;
   }
+  
+  console.log('Final request headers:', config.headers);
   return config;
 };
 
