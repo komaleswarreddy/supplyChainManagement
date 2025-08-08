@@ -1,121 +1,69 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { costCenterApi } from '@/services/api/finance';
-import { useToast } from '@/hooks/useToast';
+import { financeApi } from '@/services/api/finance';
+import type { CostCenter, CreateCostCenterRequest, UpdateCostCenterRequest } from '@/types/finance';
 
-// Types
-export interface CostCenter {
-  id: string;
-  code: string;
-  name: string;
-  type: 'department' | 'project' | 'location' | 'function';
-  description?: string;
-  manager_id?: string;
-  manager_name?: string;
-  parent_id?: string;
-  parent_name?: string;
-  location?: string;
-  budget?: number;
-  spent?: number;
-  effective_from?: string;
-  effective_to?: string;
-  status: 'active' | 'inactive' | 'suspended';
-  notes?: string;
-  tenant_id: string;
-  created_by: string;
-  updated_by: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateCostCenterData {
-  code: string;
-  name: string;
-  type: 'department' | 'project' | 'location' | 'function';
-  description?: string;
-  manager_id?: string;
-  parent_id?: string;
-  location?: string;
-  budget?: number;
-  effective_from?: string;
-  effective_to?: string;
-  status?: 'active' | 'inactive' | 'suspended';
-  notes?: string;
-}
-
-export interface UpdateCostCenterData extends Partial<CreateCostCenterData> {
-  id: string;
-}
-
-// Hooks
-export const useCostCenters = () => {
+export function useCostCenters(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}) {
   return useQuery({
-    queryKey: ['cost-centers'],
-    queryFn: costCenterApi.getAll,
+    queryKey: ['cost-centers', params],
+    queryFn: () => financeApi.getCostCenters(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-};
+}
 
-export const useCostCenter = (id: string) => {
+export function useCostCenter(id: string) {
   return useQuery({
     queryKey: ['cost-centers', id],
-    queryFn: () => costCenterApi.getById(id),
+    queryFn: () => financeApi.getCostCenter(id),
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-};
+}
 
-export const useCreateCostCenter = () => {
+export function useCreateCostCenter() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: costCenterApi.create,
+    mutationFn: (data: CreateCostCenterRequest) => financeApi.createCostCenter(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cost-centers'] });
-      toast.success('Cost center created successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to create cost center');
     },
   });
-};
+}
 
-export const useUpdateCostCenter = () => {
+export function useUpdateCostCenter() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateCostCenterData }) => 
-      costCenterApi.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateCostCenterRequest }) =>
+      financeApi.updateCostCenter(id, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cost-centers'] });
       queryClient.invalidateQueries({ queryKey: ['cost-centers', data.id] });
-      toast.success('Cost center updated successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update cost center');
     },
   });
-};
+}
 
-export const useDeleteCostCenter = () => {
+export function useDeleteCostCenter() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
+
   return useMutation({
-    mutationFn: costCenterApi.delete,
+    mutationFn: (id: string) => financeApi.deleteCostCenter(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cost-centers'] });
-      toast.success('Cost center deleted successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to delete cost center');
     },
   });
-};
+}
 
-export const useCostCenterAnalytics = (id?: string) => {
+export function useCostCenterAnalytics(id: string) {
   return useQuery({
     queryKey: ['cost-centers', id, 'analytics'],
-    queryFn: () => costCenterApi.getAnalytics(id!),
+    queryFn: () => financeApi.getCostCenterAnalytics(id),
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-}; 
+} 

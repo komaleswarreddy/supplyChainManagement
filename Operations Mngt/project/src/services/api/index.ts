@@ -17,7 +17,7 @@ export { logisticsAPI, logisticsAnalyticsAPI } from './logistics';
 export { invoiceAPI, invoiceAnalyticsAPI } from './invoices';
 export { contractAPI, contractPartyAPI, contractTermAPI, contractAmendmentAPI, contractObligationAPI, contractMilestoneAPI, contractComplianceAPI, contractTemplateAPI, contractAnalyticsAPI } from './contracts';
 export { warehouseAPI, warehouseZoneAPI, warehouseTaskAPI, cycleCountAPI, pickPathAPI, warehouseAnalyticsAPI } from './warehouse';
-export { costCenterApi, budgetAPI, glAccountAPI, glTransactionAPI, financialReportAPI, financeAnalyticsAPI } from './finance';
+export { financeApi, budgetAPI, glAccountAPI, glTransactionAPI, financialReportAPI, financeAnalyticsAPI } from './finance';
 
 // API Client Configuration
 import axios from 'axios';

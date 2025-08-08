@@ -30,9 +30,11 @@ interface PurchaseOrderFiltersProps {
 
 export function PurchaseOrderFilters({ filters, onFiltersChange }: PurchaseOrderFiltersProps) {
   const handleFilterChange = (key: string, value: string) => {
+    // Convert "all" back to empty string for the actual filter
+    const actualValue = value === 'all' ? '' : value;
     onFiltersChange({
       ...filters,
-      [key]: value,
+      [key]: actualValue,
     });
   };
 
@@ -43,6 +45,11 @@ export function PurchaseOrderFilters({ filters, onFiltersChange }: PurchaseOrder
       startDate: '',
       endDate: '',
     });
+  };
+
+  // Convert empty strings to "all" for display
+  const displayFilters = {
+    status: filters.status || 'all',
   };
 
   const hasActiveFilters = Object.values(filters).some(value => value !== '');
@@ -72,14 +79,14 @@ export function PurchaseOrderFilters({ filters, onFiltersChange }: PurchaseOrder
         <div className="space-y-2">
           <label className="text-sm font-medium">Status</label>
           <Select
-            value={filters.status}
+            value={displayFilters.status}
             onValueChange={(value) => handleFilterChange('status', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All statuses</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="pending">Pending Approval</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>

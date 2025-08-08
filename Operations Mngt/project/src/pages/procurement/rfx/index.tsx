@@ -1,286 +1,358 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  createColumnHelper,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type SortingState,
-} from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
+  Plus, Search, Filter, Calendar, Building, DollarSign, CheckCircle, XCircle, Clock, MoreHorizontal, Edit, Trash2, Eye, FileText
+} from 'lucide-react';
+import { useRfx } from '@/hooks/useRfx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { DataTable } from '@/components/ui/data-table';
-import { useRfx } from '@/hooks/useRfx';
-import type { Rfx } from '@/types/rfx';
-import { ArrowUpDown, Eye, Plus, FileText } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Pagination } from '@/components/ui/pagination';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-const columnHelper = createColumnHelper<Rfx>();
-
-const statusColors = {
-  DRAFT: 'default',
-  PUBLISHED: 'primary',
-  IN_PROGRESS: 'warning',
-  CLOSED: 'secondary',
-  CANCELLED: 'destructive',
-  AWARDED: 'success',
-} as const;
-
-export function RfxList() {
-  const navigate = useNavigate();
-  const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>([null, null]);
-  const [startDate, endDate] = dateRange;
-  const [filters, setFilters] = React.useState({
+export default function RFXPage() {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({
     type: '',
     status: '',
-    supplier: '',
-    department: '',
     category: '',
   });
 
-  const columns = [
-    columnHelper.accessor('number', {
-      header: ({ column }) => (
-        <div className="flex items-center space-x-2">
-          <span>RFx Number</span>
-          <ArrowUpDown
-            className="h-4 w-4 cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          />
-        </div>
-      ),
-      cell: (info) => (
-        <span className="font-medium text-primary">
-          {info.getValue()}
-        </span>
-      ),
-    }),
-    columnHelper.accessor('title', {
-      header: ({ column }) => (
-        <div className="flex items-center space-x-2">
-          <span>Title</span>
-          <ArrowUpDown
-            className="h-4 w-4 cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          />
-        </div>
-      ),
-    }),
-    columnHelper.accessor('type', {
-      header: 'Type',
-      cell: (info) => (
-        <Badge variant="secondary">
-          {info.getValue()}
-        </Badge>
-      ),
-    }),
-    columnHelper.accessor('status', {
-      header: ({ column }) => (
-        <div className="flex items-center space-x-2">
-          <span>Status</span>
-          <ArrowUpDown
-            className="h-4 w-4 cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          />
-        </div>
-      ),
-      cell: (info) => (
-        <Badge variant={statusColors[info.getValue()]}>
-          {info.getValue()}
-        </Badge>
-      ),
-    }),
-    columnHelper.accessor('publishDate', {
-      header: ({ column }) => (
-        <div className="flex items-center space-x-2">
-          <span>Publish Date</span>
-          <ArrowUpDown
-            className="h-4 w-4 cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          />
-        </div>
-      ),
-      cell: (info) => format(new Date(info.getValue()), 'PP'),
-    }),
-    columnHelper.accessor('closeDate', {
-      header: ({ column }) => (
-        <div className="flex items-center space-x-2">
-          <span>Close Date</span>
-          <ArrowUpDown
-            className="h-4 w-4 cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          />
-        </div>
-      ),
-      cell: (info) => format(new Date(info.getValue()), 'PP'),
-    }),
-    columnHelper.accessor('selectedSuppliers', {
-      header: 'Suppliers',
-      cell: (info) => info.getValue().length,
-    }),
-    columnHelper.accessor('responses', {
-      header: 'Responses',
-      cell: (info) => info.getValue().length,
-    }),
-    columnHelper.accessor('id', {
-      header: 'Actions',
-      cell: (info) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/procurement/rfx/${info.getValue()}`);
-          }}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-      ),
-    }),
+  const { useRfxList } = useRfx();
+  const { data: rfxData, isLoading, error } = useRfxList({
+    page,
+    pageSize: limit,
+    search,
+    ...filters,
+  });
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleFiltersChange = (newFilters: any) => {
+    setFilters(newFilters);
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  // Mock data for demonstration when API is not available
+  const mockRFX = [
+    {
+      id: '1',
+      rfxNumber: 'RFX-2024-001',
+      title: 'IT Equipment Procurement',
+      type: 'rfp',
+      status: 'published',
+      category: 'IT Equipment',
+      deadline: '2024-02-15T17:00:00Z',
+      createdAt: '2024-01-15T10:00:00Z',
+    },
+    {
+      id: '2',
+      rfxNumber: 'RFX-2024-002',
+      title: 'Office Supplies Tender',
+      type: 'rfq',
+      status: 'draft',
+      category: 'Office Supplies',
+      deadline: '2024-02-20T17:00:00Z',
+      createdAt: '2024-01-14T14:30:00Z',
+    },
+    {
+      id: '3',
+      rfxNumber: 'RFX-2024-003',
+      title: 'Software License Inquiry',
+      type: 'rfi',
+      status: 'closed',
+      category: 'Software',
+      deadline: '2024-01-30T17:00:00Z',
+      createdAt: '2024-01-13T09:15:00Z',
+    },
   ];
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const displayData = rfxData?.items || mockRFX;
+  const totalCount = rfxData?.total || mockRFX.length;
 
-  const { useRfxList } = useRfx();
-  const { data, isLoading } = useRfxList({
-    page: pagination.pageIndex + 1,
-    pageSize: pagination.pageSize,
-    sortBy: sorting[0]?.id,
-    sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
-    ...filters,
-    dateRange: startDate && endDate ? {
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-    } : undefined,
-  });
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      draft: { variant: 'secondary' as const, label: 'Draft' },
+      published: { variant: 'default' as const, label: 'Published' },
+      closed: { variant: 'destructive' as const, label: 'Closed' },
+      evaluated: { variant: 'default' as const, label: 'Evaluated' },
+      awarded: { variant: 'default' as const, label: 'Awarded' },
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'secondary' as const, label: status };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
 
-  const table = useReactTable({
-    data: data?.items ?? [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onPaginationChange: setPagination,
-    onSortingChange: setSorting,
-    state: {
-      pagination,
-      sorting,
-    },
-    pageCount: data?.totalPages ?? -1,
-    manualPagination: true,
-    manualSorting: true,
-  });
+  const getTypeBadge = (type: string) => {
+    const typeConfig = {
+      rfi: { variant: 'secondary' as const, label: 'RFI' },
+      rfp: { variant: 'default' as const, label: 'RFP' },
+      rfq: { variant: 'outline' as const, label: 'RFQ' },
+    };
+    
+    const config = typeConfig[type as keyof typeof typeConfig] || { variant: 'secondary' as const, label: type.toUpperCase() };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  if (error && !displayData.length) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading RFX</h3>
+          <p className="text-gray-600">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <FileText className="h-6 w-6" />
-          <h1 className="text-3xl font-bold">RFx Management</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">RFx Management</h1>
+          <p className="text-muted-foreground">
+            Manage Requests for Information, Proposals, and Quotes
+          </p>
         </div>
-        <Button onClick={() => navigate('new')} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create RFx
-        </Button>
+        <Link to="/procurement/rfx/create">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Create RFx
+          </Button>
+        </Link>
       </div>
 
-      <div className="rounded-lg border bg-card p-6">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <Select
-              id="type"
-              value={filters.type}
-              onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
-            >
-              <option value="">All Types</option>
-              <option value="RFI">RFI</option>
-              <option value="RFP">RFP</option>
-              <option value="RFQ">RFQ</option>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              id="status"
-              value={filters.status}
-              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-            >
-              <option value="">All Statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="CLOSED">Closed</option>
-              <option value="CANCELLED">Cancelled</option>
-              <option value="AWARDED">Awarded</option>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Date Range</Label>
-            <div className="relative">
-              <DatePicker
-                selectsRange
-                startDate={startDate}
-                endDate={endDate}
-                onChange={(update) => setDateRange(update)}
-                isClearable
-                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-                placeholderText="Select date range"
+      {/* Filters and Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters & Search
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Input
+                placeholder="Search RFx..."
+                value={search}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="max-w-sm"
               />
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="supplier">Supplier</Label>
-            <Input
-              id="supplier"
-              value={filters.supplier}
-              onChange={(e) => setFilters(prev => ({ ...prev, supplier: e.target.value }))}
-              placeholder="Search supplier..."
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Type</label>
+              <select
+                value={filters.type}
+                onChange={(e) => handleFiltersChange({ ...filters, type: e.target.value })}
+                className="w-full p-2 border rounded-md bg-background"
+              >
+                <option value="">All Types</option>
+                <option value="rfi">RFI</option>
+                <option value="rfp">RFP</option>
+                <option value="rfq">RFQ</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <select
+                value={filters.status}
+                onChange={(e) => handleFiltersChange({ ...filters, status: e.target.value })}
+                className="w-full p-2 border rounded-md bg-background"
+              >
+                <option value="">All Statuses</option>
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="closed">Closed</option>
+                <option value="evaluated">Evaluated</option>
+                <option value="awarded">Awarded</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Category</label>
+              <select
+                value={filters.category}
+                onChange={(e) => handleFiltersChange({ ...filters, category: e.target.value })}
+                className="w-full p-2 border rounded-md bg-background"
+              >
+                <option value="">All Categories</option>
+                <option value="IT Equipment">IT Equipment</option>
+                <option value="Office Supplies">Office Supplies</option>
+                <option value="Software">Software</option>
+                <option value="Services">Services</option>
+              </select>
+            </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="space-y-2">
-            <Label htmlFor="department">Department</Label>
-            <Input
-              id="department"
-              value={filters.department}
-              onChange={(e) => setFilters(prev => ({ ...prev, department: e.target.value }))}
-              placeholder="Filter by department"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Input
-              id="category"
-              value={filters.category}
-              onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-              placeholder="Filter by category"
-            />
-          </div>
-        </div>
+      {/* Statistics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total RFx</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalCount}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {displayData.filter(rfx => rfx.status === 'published').length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Draft</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {displayData.filter(rfx => rfx.status === 'draft').length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Closed</CardTitle>
+            <XCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {displayData.filter(rfx => rfx.status === 'closed').length}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <DataTable
-        table={table}
-        isLoading={isLoading}
-        onRowClick={(row) => navigate(`/procurement/rfx/${row.id}`)}
-      />
+      {/* RFx Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>RFx List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading RFx...</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>RFx Number</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Deadline</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {displayData.map((rfx) => (
+                    <TableRow key={rfx.id}>
+                      <TableCell className="font-medium">
+                        <Link 
+                          to={`/procurement/rfx/${rfx.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {rfx.rfxNumber}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{rfx.title}</TableCell>
+                      <TableCell>{getTypeBadge(rfx.type)}</TableCell>
+                      <TableCell>{rfx.category}</TableCell>
+                      <TableCell>{getStatusBadge(rfx.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          {new Date(rfx.deadline).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link to={`/procurement/rfx/${rfx.id}`}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to={`/procurement/rfx/${rfx.id}/edit`}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Pagination */}
+              {totalCount > limit && (
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, totalCount)} of {totalCount} results
+                  </div>
+                  <Pagination
+                    currentPage={page}
+                    totalPages={Math.ceil(totalCount / limit)}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
-export default RfxList;

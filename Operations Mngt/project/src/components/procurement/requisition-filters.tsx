@@ -31,9 +31,11 @@ interface RequisitionFiltersProps {
 
 export function RequisitionFilters({ filters, onFiltersChange }: RequisitionFiltersProps) {
   const handleFilterChange = (key: string, value: string) => {
+    // Convert "all" back to empty string for the actual filter
+    const actualValue = value === 'all' ? '' : value;
     onFiltersChange({
       ...filters,
-      [key]: value,
+      [key]: actualValue,
     });
   };
 
@@ -45,6 +47,12 @@ export function RequisitionFilters({ filters, onFiltersChange }: RequisitionFilt
       startDate: '',
       endDate: '',
     });
+  };
+
+  // Convert empty strings to "all" for display
+  const displayFilters = {
+    status: filters.status || 'all',
+    department: filters.department || 'all',
   };
 
   const hasActiveFilters = Object.values(filters).some(value => value !== '');
@@ -74,14 +82,14 @@ export function RequisitionFilters({ filters, onFiltersChange }: RequisitionFilt
         <div className="space-y-2">
           <label className="text-sm font-medium">Status</label>
           <Select
-            value={filters.status}
+            value={displayFilters.status}
             onValueChange={(value) => handleFilterChange('status', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All statuses</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="submitted">Submitted</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
@@ -95,14 +103,14 @@ export function RequisitionFilters({ filters, onFiltersChange }: RequisitionFilt
         <div className="space-y-2">
           <label className="text-sm font-medium">Department</label>
           <Select
-            value={filters.department}
+            value={displayFilters.department}
             onValueChange={(value) => handleFilterChange('department', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="All departments" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All departments</SelectItem>
+              <SelectItem value="all">All departments</SelectItem>
               <SelectItem value="procurement">Procurement</SelectItem>
               <SelectItem value="operations">Operations</SelectItem>
               <SelectItem value="finance">Finance</SelectItem>

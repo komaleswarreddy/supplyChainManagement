@@ -54,7 +54,10 @@ export default function PurchaseOrdersPage() {
     setPage(newPage);
   };
 
-  if (error) {
+  const displayData = purchaseOrdersData?.data || [];
+  const totalCount = purchaseOrdersData?.total || 0;
+
+  if (error && !displayData.length) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -112,10 +115,10 @@ export default function PurchaseOrdersPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Purchase Orders</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{purchaseOrdersData?.total || 0}</div>
+            <div className="text-2xl font-bold">{totalCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -125,18 +128,18 @@ export default function PurchaseOrdersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {purchaseOrdersData?.data?.filter(po => po.status === 'pending').length || 0}
+              {displayData.filter(po => po.status === 'pending').length}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Sent to Suppliers</CardTitle>
+            <Send className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {purchaseOrdersData?.data?.filter(po => po.status === 'approved').length || 0}
+              {displayData.filter(po => po.status === 'sent').length}
             </div>
           </CardContent>
         </Card>
@@ -147,7 +150,7 @@ export default function PurchaseOrdersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${purchaseOrdersData?.data?.reduce((sum, po) => sum + (po.totalAmount || 0), 0).toLocaleString() || 0}
+              ${displayData.reduce((sum, po) => sum + (po.totalAmount || 0), 0).toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -175,13 +178,12 @@ export default function PurchaseOrdersPage() {
                     <TableHead>Supplier</TableHead>
                     <TableHead>Total Amount</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Expected Delivery</TableHead>
                     <TableHead>Created Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {purchaseOrdersData?.data?.map((purchaseOrder) => (
+                  {displayData.map((purchaseOrder) => (
                     <TableRow key={purchaseOrder.id}>
                       <TableCell className="font-medium">
                         <Link 
@@ -191,7 +193,12 @@ export default function PurchaseOrdersPage() {
                           {purchaseOrder.poNumber}
                         </Link>
                       </TableCell>
-                      <TableCell>{purchaseOrder.supplierName}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 text-muted-foreground" />
+                          {purchaseOrder.supplierName}
+                        </div>
+                      </TableCell>
                       <TableCell>${purchaseOrder.totalAmount?.toLocaleString()}</TableCell>
                       <TableCell>
                         <PurchaseOrderStatusBadge status={purchaseOrder.status} />
@@ -199,14 +206,8 @@ export default function PurchaseOrdersPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {purchaseOrder.expectedDeliveryDate 
-                            ? new Date(purchaseOrder.expectedDeliveryDate).toLocaleDateString()
-                            : 'Not set'
-                          }
+                          {new Date(purchaseOrder.createdAt).toLocaleDateString()}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(purchaseOrder.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
                         <PurchaseOrderActions purchaseOrder={purchaseOrder} />
@@ -217,14 +218,14 @@ export default function PurchaseOrdersPage() {
               </Table>
 
               {/* Pagination */}
-              {purchaseOrdersData && purchaseOrdersData.total > limit && (
+              {totalCount > limit && (
                 <div className="mt-4 flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
-                    Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, purchaseOrdersData.total)} of {purchaseOrdersData.total} results
+                    Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, totalCount)} of {totalCount} results
                   </div>
                   <Pagination
                     currentPage={page}
-                    totalPages={Math.ceil(purchaseOrdersData.total / limit)}
+                    totalPages={Math.ceil(totalCount / limit)}
                     onPageChange={handlePageChange}
                   />
                 </div>

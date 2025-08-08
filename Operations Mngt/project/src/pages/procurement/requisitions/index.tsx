@@ -60,7 +60,10 @@ export default function RequisitionsPage() {
     setPage(newPage);
   };
 
-  if (error) {
+  const displayData = requisitionsData?.data || [];
+  const totalCount = requisitionsData?.total || 0;
+
+  if (error && !displayData.length) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -121,7 +124,7 @@ export default function RequisitionsPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{requisitionsData?.total || 0}</div>
+            <div className="text-2xl font-bold">{totalCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -131,7 +134,7 @@ export default function RequisitionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {requisitionsData?.data?.filter(r => r.status === 'submitted').length || 0}
+              {displayData.filter(r => r.status === 'submitted').length}
             </div>
           </CardContent>
         </Card>
@@ -142,7 +145,7 @@ export default function RequisitionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {requisitionsData?.data?.filter(r => r.status === 'approved').length || 0}
+              {displayData.filter(r => r.status === 'approved').length}
             </div>
           </CardContent>
         </Card>
@@ -153,7 +156,7 @@ export default function RequisitionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${requisitionsData?.data?.reduce((sum, r) => sum + (r.totalValue || 0), 0).toLocaleString() || 0}
+              ${displayData.reduce((sum, r) => sum + (r.totalValue || 0), 0).toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -187,7 +190,7 @@ export default function RequisitionsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {requisitionsData?.data?.map((requisition) => (
+                  {displayData.map((requisition) => (
                     <TableRow key={requisition.id}>
                       <TableCell className="font-medium">
                         <Link 
@@ -223,14 +226,14 @@ export default function RequisitionsPage() {
               </Table>
 
               {/* Pagination */}
-              {requisitionsData && requisitionsData.total > limit && (
+              {totalCount > limit && (
                 <div className="mt-4 flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
-                    Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, requisitionsData.total)} of {requisitionsData.total} results
+                    Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, totalCount)} of {totalCount} results
                   </div>
                   <Pagination
                     currentPage={page}
-                    totalPages={Math.ceil(requisitionsData.total / limit)}
+                    totalPages={Math.ceil(totalCount / limit)}
                     onPageChange={handlePageChange}
                   />
                 </div>

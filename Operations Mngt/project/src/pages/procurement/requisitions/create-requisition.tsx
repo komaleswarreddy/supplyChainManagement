@@ -149,88 +149,87 @@ export function CreateRequisition() {
         </div>
       </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Basic Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Department</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select department" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="procurement">Procurement</SelectItem>
-                          <SelectItem value="operations">Operations</SelectItem>
-                          <SelectItem value="finance">Finance</SelectItem>
-                          <SelectItem value="it">IT</SelectItem>
-                          <SelectItem value="hr">Human Resources</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="costCenter"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cost Center</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select cost center" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {costCentersData?.map((costCenter) => (
-                            <SelectItem key={costCenter.id} value={costCenter.id}>
-                              {costCenter.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
+      <Form {...form} onSubmit={onSubmit}>
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Basic Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="justification"
+                name="department"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Justification</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Explain why this requisition is needed..."
-                        className="min-h-[100px]"
-                        {...field}
-                      />
-                    </FormControl>
+                    <FormLabel>Department</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="procurement">Procurement</SelectItem>
+                        <SelectItem value="operations">Operations</SelectItem>
+                        <SelectItem value="finance">Finance</SelectItem>
+                        <SelectItem value="it">IT</SelectItem>
+                        <SelectItem value="hr">Human Resources</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
+
+              <FormField
+                control={form.control}
+                name="costCenter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cost Center</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select cost center" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {costCentersData?.map((costCenter) => (
+                          <SelectItem key={costCenter.id} value={costCenter.id}>
+                            {costCenter.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="justification"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Justification</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Explain why this requisition is needed..."
+                      className="min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
 
           {/* Items */}
           <Card>
@@ -407,8 +406,7 @@ export function CreateRequisition() {
               {isSubmitting ? 'Submitting...' : 'Submit Requisition'}
             </Button>
           </div>
-        </form>
-      </Form>
+        </Form>
     </div>
   );
 }

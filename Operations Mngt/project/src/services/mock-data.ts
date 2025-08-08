@@ -1,0 +1,166 @@
+// Mock data service for procurement forms
+export const mockData = {
+  departments: [
+    { id: 'procurement', name: 'Procurement' },
+    { id: 'operations', name: 'Operations' },
+    { id: 'finance', name: 'Finance' },
+    { id: 'it', name: 'IT' },
+    { id: 'hr', name: 'Human Resources' },
+    { id: 'marketing', name: 'Marketing' },
+    { id: 'sales', name: 'Sales' },
+    { id: 'engineering', name: 'Engineering' },
+    { id: 'legal', name: 'Legal' },
+    { id: 'facilities', name: 'Facilities' },
+  ],
+
+  costCenters: [
+    { id: 'cc-001', name: 'IT Infrastructure' },
+    { id: 'cc-002', name: 'Office Supplies' },
+    { id: 'cc-003', name: 'Marketing & Advertising' },
+    { id: 'cc-004', name: 'Travel & Entertainment' },
+    { id: 'cc-005', name: 'Professional Services' },
+    { id: 'cc-006', name: 'Equipment & Machinery' },
+    { id: 'cc-007', name: 'Software Licenses' },
+    { id: 'cc-008', name: 'Training & Development' },
+    { id: 'cc-009', name: 'Facilities Maintenance' },
+    { id: 'cc-010', name: 'Research & Development' },
+  ],
+
+  suppliers: [
+    { id: 'supplier-001', name: 'Tech Solutions Inc.', code: 'TSI001', type: 'MANUFACTURER' },
+    { id: 'supplier-002', name: 'Office Supplies Co.', code: 'OSC002', type: 'DISTRIBUTOR' },
+    { id: 'supplier-003', name: 'Furniture World Ltd.', code: 'FWL003', type: 'WHOLESALER' },
+    { id: 'supplier-004', name: 'Software Pro', code: 'SP004', type: 'SERVICE_PROVIDER' },
+    { id: 'supplier-005', name: 'Industrial Equipment Corp.', code: 'IEC005', type: 'MANUFACTURER' },
+    { id: 'supplier-006', name: 'Global Logistics Solutions', code: 'GLS006', type: 'SERVICE_PROVIDER' },
+    { id: 'supplier-007', name: 'Digital Marketing Agency', code: 'DMA007', type: 'SERVICE_PROVIDER' },
+    { id: 'supplier-008', name: 'Construction Materials Ltd.', code: 'CML008', type: 'WHOLESALER' },
+    { id: 'supplier-009', name: 'Training Institute', code: 'TI009', type: 'SERVICE_PROVIDER' },
+    { id: 'supplier-010', name: 'Legal Services Group', code: 'LSG010', type: 'SERVICE_PROVIDER' },
+  ],
+
+  catalogItems: [
+    { id: 'item-001', name: 'Laptop Computer', category: 'IT Equipment', description: 'High-performance laptop for business use' },
+    { id: 'item-002', name: 'Office Chair', category: 'Furniture', description: 'Ergonomic office chair with adjustable features' },
+    { id: 'item-003', name: 'Printer Paper', category: 'Office Supplies', description: 'A4 printer paper, 80gsm, 500 sheets per ream' },
+    { id: 'item-004', name: 'Software License', category: 'Software', description: 'Annual software license for business applications' },
+    { id: 'item-005', name: 'Conference Table', category: 'Furniture', description: 'Large conference table seating 8-12 people' },
+    { id: 'item-006', name: 'Projector', category: 'IT Equipment', description: 'HD projector for presentations and meetings' },
+    { id: 'item-007', name: 'Desk Lamp', category: 'Office Supplies', description: 'LED desk lamp with adjustable brightness' },
+    { id: 'item-008', name: 'Whiteboard', category: 'Office Supplies', description: 'Large whiteboard for meeting rooms' },
+    { id: 'item-009', name: 'Network Switch', category: 'IT Equipment', description: '24-port network switch for office networking' },
+    { id: 'item-010', name: 'Filing Cabinet', category: 'Furniture', description: '4-drawer filing cabinet with lock' },
+    { id: 'item-011', name: 'Coffee Machine', category: 'Office Supplies', description: 'Commercial coffee machine for break room' },
+    { id: 'item-012', name: 'Security Camera', category: 'IT Equipment', description: 'HD security camera with night vision' },
+    { id: 'item-013', name: 'Training Course', category: 'Services', description: 'Professional training course for employees' },
+    { id: 'item-014', name: 'Legal Consultation', category: 'Services', description: 'Legal consultation services' },
+    { id: 'item-015', name: 'Marketing Campaign', category: 'Services', description: 'Digital marketing campaign services' },
+  ],
+
+  unitOfMeasures: [
+    { value: 'EA', label: 'Each' },
+    { value: 'BOX', label: 'Box' },
+    { value: 'KG', label: 'Kilogram' },
+    { value: 'L', label: 'Liter' },
+    { value: 'HR', label: 'Hour' },
+    { value: 'DAY', label: 'Day' },
+    { value: 'MTH', label: 'Month' },
+    { value: 'YR', label: 'Year' },
+    { value: 'PCS', label: 'Pieces' },
+    { value: 'SET', label: 'Set' },
+    { value: 'UNIT', label: 'Unit' },
+    { value: 'LICENSE', label: 'License' },
+    { value: 'M', label: 'Meter' },
+    { value: 'CM', label: 'Centimeter' },
+    { value: 'MM', label: 'Millimeter' },
+  ],
+
+  poTypes: [
+    { value: 'STANDARD', label: 'Standard' },
+    { value: 'BLANKET', label: 'Blanket' },
+    { value: 'CONTRACT', label: 'Contract' },
+    { value: 'DIRECT', label: 'Direct' },
+  ],
+
+  currencies: [
+    { value: 'USD', label: 'USD ($)' },
+    { value: 'EUR', label: 'EUR (€)' },
+    { value: 'GBP', label: 'GBP (£)' },
+    { value: 'CAD', label: 'CAD (C$)' },
+    { value: 'AUD', label: 'AUD (A$)' },
+  ],
+
+  shippingMethods: [
+    { value: 'Ground', label: 'Ground' },
+    { value: 'Air', label: 'Air' },
+    { value: 'Sea', label: 'Sea' },
+    { value: 'Express', label: 'Express' },
+    { value: 'Overnight', label: 'Overnight' },
+  ],
+
+  paymentTerms: [
+    { value: 'Net 30', label: 'Net 30' },
+    { value: 'Net 60', label: 'Net 60' },
+    { value: 'Net 90', label: 'Net 90' },
+    { value: 'Due on Receipt', label: 'Due on Receipt' },
+    { value: 'Net 15', label: 'Net 15' },
+    { value: 'Net 45', label: 'Net 45' },
+  ],
+
+  deliveryTerms: [
+    { value: 'FOB Destination', label: 'FOB Destination' },
+    { value: 'FOB Origin', label: 'FOB Origin' },
+    { value: 'CIF', label: 'CIF' },
+    { value: 'EXW', label: 'EXW' },
+    { value: 'DDP', label: 'DDP' },
+    { value: 'DDU', label: 'DDU' },
+  ],
+
+  countries: [
+    { value: 'US', label: 'United States' },
+    { value: 'CA', label: 'Canada' },
+    { value: 'GB', label: 'United Kingdom' },
+    { value: 'DE', label: 'Germany' },
+    { value: 'FR', label: 'France' },
+    { value: 'AU', label: 'Australia' },
+    { value: 'JP', label: 'Japan' },
+    { value: 'CN', label: 'China' },
+    { value: 'IN', label: 'India' },
+    { value: 'BR', label: 'Brazil' },
+  ],
+
+  states: [
+    { value: 'CA', label: 'California' },
+    { value: 'NY', label: 'New York' },
+    { value: 'TX', label: 'Texas' },
+    { value: 'FL', label: 'Florida' },
+    { value: 'IL', label: 'Illinois' },
+    { value: 'PA', label: 'Pennsylvania' },
+    { value: 'OH', label: 'Ohio' },
+    { value: 'GA', label: 'Georgia' },
+    { value: 'NC', label: 'North Carolina' },
+    { value: 'MI', label: 'Michigan' },
+  ],
+};
+
+// Helper functions
+export const getMockData = {
+  departments: () => mockData.departments,
+  costCenters: () => mockData.costCenters,
+  suppliers: () => mockData.suppliers,
+  catalogItems: () => mockData.catalogItems,
+  unitOfMeasures: () => mockData.unitOfMeasures,
+  poTypes: () => mockData.poTypes,
+  currencies: () => mockData.currencies,
+  shippingMethods: () => mockData.shippingMethods,
+  paymentTerms: () => mockData.paymentTerms,
+  deliveryTerms: () => mockData.deliveryTerms,
+  countries: () => mockData.countries,
+  states: () => mockData.states,
+  
+  // Get item by ID
+  getItemById: (id: string) => mockData.catalogItems.find(item => item.id === id),
+  getSupplierById: (id: string) => mockData.suppliers.find(supplier => supplier.id === id),
+  getDepartmentById: (id: string) => mockData.departments.find(dept => dept.id === id),
+  getCostCenterById: (id: string) => mockData.costCenters.find(cc => cc.id === id),
+};

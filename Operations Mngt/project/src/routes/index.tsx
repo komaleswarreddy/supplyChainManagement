@@ -43,11 +43,11 @@ import CatalogExport from '@/pages/catalog/export';
 // Procurement Management
 import ProcurementDashboard from '@/pages/procurement/dashboard';
 import Requisitions from '@/pages/procurement/requisitions';
-import { CreateRequisition } from '@/pages/procurement/requisitions/create-requisition';
+import { NewRequisitionForm } from '@/pages/procurement/requisitions/new-requisition-form';
 import { EditRequisition } from '@/pages/procurement/requisitions/edit-requisition';
 import { RequisitionDetail } from '@/pages/procurement/requisitions/requisition-detail';
 import PurchaseOrders from '@/pages/procurement/purchase-orders';
-import { CreatePurchaseOrder } from '@/pages/procurement/purchase-orders/create-purchase-order';
+import { NewPurchaseOrderForm } from '@/pages/procurement/purchase-orders/new-purchase-order-form';
 import { EditPurchaseOrder } from '@/pages/procurement/purchase-orders/edit-purchase-order';
 import PurchaseOrderDetail from '@/pages/procurement/purchase-orders/purchase-order-detail';
 import RFX from '@/pages/procurement/rfx';
@@ -254,13 +254,13 @@ export const AppRouter = createBrowserRouter([
         children: [
           { index: true, element: <ProcurementDashboard /> },
           { path: 'requisitions', element: <Requisitions /> },
-          { path: 'requisitions/new', element: <CreateRequisition /> },
-          { path: 'requisitions/create', element: <CreateRequisition /> },
+          { path: 'requisitions/new', element: <NewRequisitionForm /> },
+          { path: 'requisitions/create', element: <NewRequisitionForm /> },
           { path: 'requisitions/:requisitionId', element: <RequisitionDetail /> },
           { path: 'requisitions/:requisitionId/edit', element: <EditRequisition /> },
           { path: 'purchase-orders', element: <PurchaseOrders /> },
-          { path: 'purchase-orders/new', element: <CreatePurchaseOrder /> },
-          { path: 'purchase-orders/create', element: <CreatePurchaseOrder /> },
+          { path: 'purchase-orders/new', element: <NewPurchaseOrderForm /> },
+          { path: 'purchase-orders/create', element: <NewPurchaseOrderForm /> },
           { path: 'purchase-orders/:purchaseOrderId', element: <PurchaseOrderDetail /> },
           { path: 'purchase-orders/:purchaseOrderId/edit', element: <EditPurchaseOrder /> },
           { path: 'rfx', element: <RFX /> },
