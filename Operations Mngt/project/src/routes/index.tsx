@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import Layout from '@/components/layout';
 import Dashboard from '@/pages/dashboard';
 import Login from '@/pages/login';
+import Register from '@/pages/register';
 import NotFound from '@/pages/not-found';
 import Unauthorized from '@/pages/unauthorized';
 
@@ -192,6 +193,10 @@ export const AppRouter = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/register',
+    element: <Register />,
   },
   {
     path: '/unauthorized',

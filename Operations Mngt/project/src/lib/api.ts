@@ -1,6 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from '@/config/constants';
-import { keycloak } from './keycloak';
 import { useTenantStore } from '@/stores/tenant-store';
 import type { ErrorResponse } from '@/types/common';
 
@@ -23,16 +22,10 @@ const handleRequest = async (config: InternalAxiosRequestConfig) => {
     console.log('No current tenant found in store');
   }
   
-  if (keycloak.token) {
-    const hasTokenExpired = keycloak.isTokenExpired();
-    if (hasTokenExpired) {
-      try {
-        await keycloak.updateToken(5);
-      } catch (error) {
-        await keycloak.login();
-      }
-    }
-    config.headers.Authorization = `Bearer ${keycloak.token}`;
+  // Add authentication token from localStorage
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   
   console.log('Final request headers:', config.headers);
@@ -55,7 +48,10 @@ api.interceptors.response.use(
       errorResponse.errors = error.response.data.errors;
 
       if (error.response.status === 401) {
-        await keycloak.login();
+        // Clear invalid tokens and redirect to login
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
       }
     }
 

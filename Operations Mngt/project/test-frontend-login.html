@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Frontend Login</title>
+</head>
+<body>
+    <h1>Test Login Functionality</h1>
+    
+    <div>
+        <input type="email" id="email" placeholder="Email" value="testuser@example.com" />
+        <input type="password" id="password" placeholder="Password" value="TestPassword123!" />
+        <button onclick="testLogin()">Test Login</button>
+    </div>
+    
+    <div id="result"></div>
+    
+    <script>
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Testing login...';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Login Successful!</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Access Token:</strong> ${data.accessToken ? 'Received' : 'Missing'}</p>
+                        <p><strong>Refresh Token:</strong> ${data.refreshToken ? 'Received' : 'Missing'}</p>
+                        <p><strong>User Data:</strong></p>
+                        <pre>${JSON.stringify(data.user, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Login Failed</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Error:</strong> ${data.message || 'Unknown error'}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ Network Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>This could be a CORS issue or the server is not running.</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

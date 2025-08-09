@@ -18,7 +18,7 @@ export const DB_CONFIG = {
   port: parseInt(process.env.DB_PORT || '5432', 10),
   database: process.env.DB_NAME || 'pls_scm',
   user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  password: process.env.DB_PASSWORD || '', // Try empty password first
   ssl: process.env.DB_SSL === 'true',
   connectionString: process.env.DATABASE_URL,
 };

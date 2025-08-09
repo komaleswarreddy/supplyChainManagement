@@ -2,12 +2,22 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { AppError } from '../utils/app-error';
 import { authenticate } from '../middleware/auth';
-import { generateToken, verifyCredentials, verifyKeycloakToken, createOrUpdateUserFromKeycloak } from '../utils/auth';
+import { generateToken, verifyCredentials, verifyKeycloakToken, createOrUpdateUserFromKeycloak, createUser } from '../utils/auth';
 import { AUTH_CONFIG } from '../config';
 import axios from 'axios';
 import { logger } from '../utils/logger';
 
 // Define route schemas
+const registerSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  department: z.string().optional(),
+  title: z.string().optional(),
+  phoneNumber: z.string().optional(),
+});
+
 const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -24,6 +34,69 @@ const keycloakLoginSchema = z.object({
 
 // Auth routes
 export default async function authRoutes(fastify: FastifyInstance) {
+  // Register route
+  fastify.post('/register', {
+    schema: {
+      body: {
+        type: 'object',
+        required: ['email', 'password', 'firstName', 'lastName'],
+        properties: {
+          email: { type: 'string', format: 'email' },
+          password: { type: 'string', minLength: 6 },
+          firstName: { type: 'string', minLength: 1 },
+          lastName: { type: 'string', minLength: 1 },
+          department: { type: 'string' },
+          title: { type: 'string' },
+          phoneNumber: { type: 'string' },
+        },
+      },
+      response: {
+        201: {
+          type: 'object',
+          properties: {
+            message: { type: 'string' },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                email: { type: 'string' },
+                firstName: { type: 'string' },
+                lastName: { type: 'string' },
+                name: { type: 'string' },
+                department: { type: 'string' },
+                title: { type: 'string' },
+                roles: { type: 'array', items: { type: 'string' } },
+                status: { type: 'string' },
+                createdAt: { type: 'string', format: 'date-time' },
+              },
+            },
+          },
+        },
+      },
+    },
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const userData = registerSchema.parse(request.body);
+      
+      // Create new user
+      const newUser = await createUser(userData);
+      
+      // Return success response (exclude password hash)
+      const { passwordHash, ...userResponse } = newUser;
+      
+      reply.code(201);
+      return {
+        message: 'User registered successfully',
+        user: userResponse,
+      };
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new AppError('Validation error', 400, error.errors);
+      }
+      throw error;
+    }
+  });
+  
   // Login route
   fastify.post('/login', {
     schema: {

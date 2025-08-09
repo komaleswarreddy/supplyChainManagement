@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { AUTH_CONFIG } from '../config';
 import { AppError } from './app-error';
 import { logger } from './logger';
@@ -7,26 +8,100 @@ import { users } from '../db/schema/users';
 import { eq } from 'drizzle-orm';
 import axios from 'axios';
 
+// Hash password
+export const hashPassword = async (password: string): Promise<string> => {
+  try {
+    const saltRounds = 12;
+    return await bcrypt.hash(password, saltRounds);
+  } catch (error) {
+    logger.error('Error hashing password', { error });
+    throw new AppError('Password hashing failed', 500);
+  }
+};
+
 // Verify user credentials
 export const verifyCredentials = async (email: string, password: string) => {
   try {
-    // In a real implementation, you would fetch the user from the database
-    // and verify the password using bcrypt or similar
+    // Fetch user from database
+    const userResult = await db.select().from(users).where(eq(users.email, email)).limit(1);
     
-    // For demo purposes, we'll just check if the email exists
-    const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    
-    if (!user.length) {
+    if (!userResult.length) {
       return null;
     }
     
-    // In a real implementation, you would verify the password here
-    // For demo purposes, we'll just return the user
+    const user = userResult[0];
     
-    return user[0];
+    // Verify password using bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    
+    if (!isPasswordValid) {
+      return null;
+    }
+    
+    // Update last login timestamp
+    await db.update(users).set({
+      lastLogin: new Date(),
+      updatedAt: new Date()
+    }).where(eq(users.id, user.id));
+    
+    return user;
   } catch (error) {
     logger.error('Error verifying credentials', { error });
     throw new AppError('Authentication failed', 500);
+  }
+};
+
+// Create new user
+export const createUser = async (userData: {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  department?: string;
+  title?: string;
+  phoneNumber?: string;
+  roles?: string[];
+  permissions?: string[];
+}) => {
+  try {
+    // Check if user already exists
+    const existingUser = await db.select().from(users).where(eq(users.email, userData.email)).limit(1);
+    
+    if (existingUser.length > 0) {
+      throw new AppError('User with this email already exists', 409);
+    }
+    
+    // Hash password
+    const passwordHash = await hashPassword(userData.password);
+    
+    // Create user data
+    const newUserData = {
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      name: `${userData.firstName} ${userData.lastName}`,
+      passwordHash,
+      department: userData.department || null,
+      title: userData.title || null,
+      phoneNumber: userData.phoneNumber || null,
+      roles: userData.roles || ['user'],
+      permissions: userData.permissions || ['create_requisition'],
+      status: 'active' as const,
+      passwordLastChanged: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    // Insert user into database
+    const [newUser] = await db.insert(users).values(newUserData).returning();
+    
+    return newUser;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    logger.error('Error creating user', { error });
+    throw new AppError('User creation failed', 500);
   }
 };
 

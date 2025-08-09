@@ -6,6 +6,7 @@ export const users = pgTable('users', {
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),
   name: text('name').notNull(),
+  passwordHash: text('password_hash').notNull(),
   title: text('title'),
   department: text('department'),
   employeeId: text('employee_id'),
